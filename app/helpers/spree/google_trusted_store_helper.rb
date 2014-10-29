@@ -17,8 +17,13 @@ module Spree
       }
     end
 
-    def google_trusted_store_order_confirmation
-      raise "TODO I'll figure this out...."
+    def google_trusted_store_order_confirmation(order)
+      # use this:
+      # URI.parse(request.original_url).host
+
+      # render 'spree/google_trusted_store/order_confirmation', {
+      #   id: 
+      # }
     end
   end
 end

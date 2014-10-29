@@ -1,0 +1,28 @@
+<!-- START Google Trusted Stores Order -->
+<div id="gts-order" <% unless Rails.env.test? %> style="display:none;" <% end %> translate="no">
+
+  <!-- start order and merchant information -->
+  <% order_fields.each do |field| %>
+    <% next unless local_assigns[field] %>
+    <span id="gts-o-<%= field.to_s.dasherize %>">
+      <%= local_assigns[field] %>
+    </span>
+  <% end %>
+  <!-- end order and merchant information -->
+
+  <!-- start repeated item specific information -->
+  <!-- item example: this area repeated for each item in the order -->
+  <% local_assigns[:items].try(:each) do |item| %>
+    <span class="gts-item">
+      <% item.each do |attribute, value| %>
+        <span class="gts-i-<%= attribute.to_s.dasherize %>">
+          <%= value %>
+        </span>
+      <% end %>
+    </span>
+  <% end %>
+  <!-- end item 1 example -->
+  <!-- end repeated item specific information -->
+
+</div>
+<!-- END Google Trusted Stores Order -->

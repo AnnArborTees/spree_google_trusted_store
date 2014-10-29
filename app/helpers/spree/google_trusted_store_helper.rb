@@ -28,7 +28,7 @@ module Spree
         discounts:      negative_adjustments_on(order),
         shipping_total: order.shipment_total,
         tax_total:      order.included_tax_total,
-        est_ship_date:  'TODO what to put here',
+        est_ship_date:  2.business_days.from_now.strftime('%F'),
         has_preorder:   order.backordered? ? 'Y' : 'N',
         has_digital:    digital_in?(order) ? 'Y' : 'N',
 

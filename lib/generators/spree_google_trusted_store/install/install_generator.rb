@@ -26,6 +26,10 @@ module SpreeGoogleTrustedStore
           puts 'Skipping rake db:migrate, don\'t forget to run it!'
         end
       end
+
+      def add_business_time_initializer
+        run 'bundle exec rails generate business_time:config'
+      end
     end
   end
 end

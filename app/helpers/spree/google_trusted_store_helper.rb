@@ -8,5 +8,17 @@ module Spree
     def item_fields
       %i(item_name item_price item_quantity)
     end
+
+    def google_trusted_store_badge
+      settings = GoogleTrustedStoreSetting.instance
+      render 'spree/google_trusted_store/badge', {
+        id: settings.account_id,
+        locale: settings.default_locale
+      }
+    end
+
+    def google_trusted_store_order_confirmation
+      raise "TODO I'll figure this out...."
+    end
   end
 end

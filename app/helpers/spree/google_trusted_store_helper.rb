@@ -18,12 +18,29 @@ module Spree
     end
 
     def google_trusted_store_order_confirmation(order)
-      # use this:
-      # URI.parse(request.original_url).host
+      byebug
+      render 'spree/google_trusted_store/order_confirmation', {
+        id:             order.number,
+        domain:         URI.parse(request.original_url).host,
+        email:          order.email,
+        country:        order.shipping_address.try(:iso_name) || 'en_US',
+        currency:       order.currency,
+        total:          order.total,
+        discounts:      order.shipping_discount,
+        shipping_total: order.shipment_total,
+        tax_total:      order.included_tax_total,
+        est_ship_date:  'TODO what to put here',
+        has_preorder:   order.backordered? ? 'Y' : 'N',
+        has_digital:    'N',
 
-      # render 'spree/google_trusted_store/order_confirmation', {
-      #   id: 
-      # }
+        items: order.line_items.map do |item|
+          {
+            name:     item.name,
+            price:    item.price,
+            quantity: item.quantity
+          }
+        end
+      }
     end
   end
 end

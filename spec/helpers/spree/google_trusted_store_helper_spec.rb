@@ -36,10 +36,10 @@ describe Spree::GoogleTrustedStoreHelper, helper_spec: true, story_159: true do
       helper.google_trusted_store_order_confirmation(create :order)
     end
 
-    it 'assigns locals based on a passed Order object' do
-      order = create :order_ready_to_ship
+    it 'assigns locals based on a passed Order object', locals: true do
+      order = create(:order_ready_to_ship, ship_address: create(:address))
 
-      allow(view).to receive_message_chain(:request, :original_url)
+      expect(helper).to receive_message_chain(:request, :original_url)
         .and_return 'http://www.test.com/order/complete'
 
       expected_locals = {

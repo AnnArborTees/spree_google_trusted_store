@@ -12,7 +12,7 @@ describe 'admin/google_trusted_store_settings/edit.html.erb', settings_spec: tru
   context 'when a user has sufficient permissions' do
     # TODO actually require permissions
 
-    it 'shows the url for shipment automatic upload' do
+    it 'shows the url for shipment automatic upload', feed_spec: true do
       assign(:google_trusted_store_setting, Spree::GoogleTrustedStoreSetting.create)
       render template: 'admin/google_trusted_store_settings/edit'
 

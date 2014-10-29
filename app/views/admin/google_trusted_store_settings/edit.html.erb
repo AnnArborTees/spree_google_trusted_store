@@ -2,6 +2,11 @@
   Google Trusted Store Settings
 <% end %>
 
+<div class='row'>
+  <h2>Google Trusted Store shipment feed path: </h2>
+  <%= text_field_tag 'shipment_feed_path', spree.google_trusted_store_shipment_feed_path %>
+</div>
+
 <%= form_for @google_trusted_store_setting, url: spree.admin_spree_google_trusted_store_setting_path(@google_trusted_store_setting) do |f| %>
   <div class='form-group'>
     <div class='form-group'>

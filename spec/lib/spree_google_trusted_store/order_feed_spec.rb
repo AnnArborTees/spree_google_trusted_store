@@ -10,7 +10,7 @@ describe SpreeGoogleTrustedStore::OrderFeed, feed_spec: true, story_159: true do
       allow(order).to receive_message_chain(:shipments, :first, :tracking)
         .and_return 'UPS'
 
-      result = subject.process_orders(order)
+      result = subject.process_orders([order])
 
       expect(result).to include order.number + "\t"
       expect(result).to include "UPS\t"

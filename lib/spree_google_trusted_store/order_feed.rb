@@ -13,13 +13,11 @@ module SpreeGoogleTrustedStore
       'ship date'
     ]
 
-    def process_orders(*args)
-      orders = Array(args)
-
+    def process_orders(orders)
       options = { col_sep: "\t", headers: HEADERS, write_headers: true }
 
       CSV.generate(options) do |csv|
-        orders.each do |order|
+        orders.send(each_method(orders)) do |order|
           csv << [
             merchant_order_id(order),
             tracking_number(order),
@@ -32,6 +30,10 @@ module SpreeGoogleTrustedStore
     end
 
     protected
+
+    def each_method(list)
+      list.respond_to?(:find_each) ? :find_each : :each
+    end
 
     def merchant_order_id(order)
       order.number

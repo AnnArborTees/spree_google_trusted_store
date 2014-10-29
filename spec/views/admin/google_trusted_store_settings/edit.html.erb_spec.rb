@@ -8,4 +8,8 @@ describe 'admin/google_trusted_store_settings/edit.html.erb', settings_spec: tru
     expect(rendered).to have_css 'input[type="text"][name="google_trusted_store_setting[account_id]"]'
     expect(rendered).to have_css 'input[type="text"][name="google_trusted_store_setting[default_locale]"]'
   end
+
+  it 'shows the url for shipment automatic upload' do
+    
+  end
 end

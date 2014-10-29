@@ -46,15 +46,15 @@ describe Spree::GoogleTrustedStoreHelper, helper_spec: true, story_159: true do
         id:             order.number,
         domain:         'www.test.com',
         email:          order.email,
-        country:        order.shipping_address.iso_name,
+        country:        order.shipping_address.country.iso,
         currency:       order.currency,
         total:          order.total,
         discounts:      order.shipping_discount,  # TODO confirm this is the only source of discounts
         shipping_total: order.shipment_total,
-        tax_total:      order.included_tax_total, # TODO confirm this is the right method to use
+        tax_total:      order.included_tax_total,
         est_ship_date:  'TODO what to put here',
         has_preorder:   order.backordered? ? 'Y' : 'N',
-        has_digital:    'N',                      # TODO implement this when spree_digital is up and running.
+        has_digital:    'N',
 
         items: order.line_items.map do |item|
           {

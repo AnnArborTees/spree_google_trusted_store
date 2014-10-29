@@ -18,20 +18,19 @@ module Spree
     end
 
     def google_trusted_store_order_confirmation(order)
-      byebug
       render 'spree/google_trusted_store/order_confirmation', {
         id:             order.number,
         domain:         URI.parse(request.original_url).host,
         email:          order.email,
-        country:        order.shipping_address.try(:iso_name) || 'en_US',
+        country:        order.shipping_address.try(:iso) || 'US',
         currency:       order.currency,
         total:          order.total,
-        discounts:      order.shipping_discount,
+        discounts:      negative_adjustments_on(order),
         shipping_total: order.shipment_total,
         tax_total:      order.included_tax_total,
         est_ship_date:  'TODO what to put here',
         has_preorder:   order.backordered? ? 'Y' : 'N',
-        has_digital:    'N',
+        has_digital:    digital_in?(order) ? 'Y' : 'N',
 
         items: order.line_items.map do |item|
           {
@@ -41,6 +40,17 @@ module Spree
           }
         end
       }
+    end
+
+    private
+
+    def negative_adjustments_on(order)
+      value = order.all_adjustments.included.map(&:amount).reduce(0, :+)
+      value <= 0 ? value : 0
+    end
+
+    def digital_in?(order)
+      false
     end
   end
 end

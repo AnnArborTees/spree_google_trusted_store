@@ -9,7 +9,14 @@ describe 'admin/google_trusted_store_settings/edit.html.erb', settings_spec: tru
     expect(rendered).to have_css 'input[type="text"][name="google_trusted_store_setting[default_locale]"]'
   end
 
-  it 'shows the url for shipment automatic upload' do
-    
+  context 'when a user has sufficient permissions' do
+    # TODO actually require permissions
+
+    it 'shows the url for shipment automatic upload' do
+      assign(:google_trusted_store_setting, Spree::GoogleTrustedStoreSetting.create)
+      render template: 'admin/google_trusted_store_settings/edit'
+
+      expect(rendered).to include spree.google_trusted_store_shipment_feed_path
+    end
   end
 end

@@ -18,7 +18,26 @@ describe Spree::GoogleTrustedStoreSetting, settings_spec: true, story_159: true 
     end
   end
 
-  describe 'Valudations' do
-    it { is_expected.to validate_length_of(:account_id).is(6) }
+  describe 'Validations' do
+    it 'validates that the length of account_id is 6' do
+      settings =  Spree::GoogleTrustedStoreSetting.create
+      settings.account_id = '1234'
+      expect(settings).to_not be_valid
+      settings.account_id = '123456'
+      expect(settings).to be_valid
+    end
+  end
+
+  describe '.create' do
+    context 'if there is already an instance' do
+      it 'returns that existing instance' do
+        expect(
+          Spree::GoogleTrustedStoreSetting.create
+        )
+          .to eq Spree::GoogleTrustedStoreSetting.create
+
+        expect(Spree::GoogleTrustedStoreSetting.count).to eq 1
+      end
+    end
   end
 end

@@ -1,3 +1,5 @@
 require 'spree_core'
 require 'spree_google_trusted_store/engine'
+require 'spree_google_trusted_store/order_feed'
 require 'business_time'
+require 'csv'

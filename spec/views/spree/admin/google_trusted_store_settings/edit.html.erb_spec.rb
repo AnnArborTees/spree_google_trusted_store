@@ -16,7 +16,7 @@ describe 'spree/admin/google_trusted_store_settings/edit.html.erb', settings_spe
       assign(:google_trusted_store_setting, Spree::GoogleTrustedStoreSetting.create)
       render template: 'spree/admin/google_trusted_store_settings/edit'
 
-      expect(rendered).to include spree.google_trusted_store_shipment_feed_path
+      expect(rendered).to include spree.google_trusted_store_shipment_feed_url
     end
   end
 end

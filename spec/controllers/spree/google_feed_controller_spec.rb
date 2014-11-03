@@ -12,7 +12,7 @@ describe Spree::GoogleFeedController, feed_spec: true, story_159: true do
     end
 
     it 'renders the plaintext order_feed result' do
-      allow(controller).to receive(:process_orders)
+      expect(controller).to receive(:process_orders)
         .with([order1, order2])
         .and_return 'excellent'
       
@@ -43,7 +43,7 @@ describe Spree::GoogleFeedController, feed_spec: true, story_159: true do
 
     before :each do
       [order1, order2].each do |order|
-        order.update_column 'state', 'confirmed'
+        order.update_column 'state', 'canceled'
       end
 
       allow_any_instance_of(Spree::GoogleTrustedStoreSetting)
@@ -52,7 +52,7 @@ describe Spree::GoogleFeedController, feed_spec: true, story_159: true do
     end
 
     it 'renders the plaintext order_feed result' do
-      allow(controller).to receive(:process_orders)
+      expect(controller).to receive(:process_cancelations)
         .with([order1, order2])
         .and_return 'excellent'
       

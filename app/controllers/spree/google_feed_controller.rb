@@ -15,7 +15,6 @@ module Spree
       update_feed_timestamp(:cancelation) if is_google_bot?
 
       render text: process_cancelations(@orders)
-
     end
 
     private

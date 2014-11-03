@@ -4,7 +4,9 @@ describe Spree::GoogleTrustedStoreSetting, settings_spec: true, story_159: true 
   it { is_expected.to have_db_column(:account_id).of_type(:string) }
   it { is_expected.to have_db_column(:default_locale).of_type(:string) }
 
-  it { is_expected.to have_db_column(:last_feed_upload).of_type(:datetime) }
+  it { is_expected.to_not have_db_column(:last_feed_upload).of_type(:datetime) }
+  it { is_expected.to have_db_column(:last_order_upload).of_type(:datetime) }
+  it { is_expected.to have_db_column(:last_cancelation_upload).of_type(:datetime) }
 
   describe 'Default values' do
     describe 'account_id' do

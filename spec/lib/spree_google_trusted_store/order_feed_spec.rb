@@ -18,4 +18,15 @@ describe SpreeGoogleTrustedStore::OrderFeed, feed_spec: true, story_159: true do
         .to include "\t" + 2.business_days.from_now.strftime('%F')
     end
   end
+
+  describe 'process_cancelations', cancelation: true do
+    let!(:canceled_order) { create :shipped_order }
+
+    it 'spits outs a tab-delimited text file with the necessary attributes' do
+      result = subject.process_cancelations([canceled_order])
+
+      expect(result).to include order.number + "\t"
+      expect(result).to include "MerchantCanceled" # TODO add cancelation reason to spree orders
+    end
+  end
 end

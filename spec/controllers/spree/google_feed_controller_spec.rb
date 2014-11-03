@@ -7,7 +7,7 @@ describe Spree::GoogleFeedController, feed_spec: true, story_159: true do
 
     before :each do
       allow_any_instance_of(Spree::GoogleTrustedStoreSetting)
-        .to receive(:last_feed_upload)
+        .to receive(:last_shipment_upload)
         .and_return 10.days.ago
     end
 
@@ -16,7 +16,7 @@ describe Spree::GoogleFeedController, feed_spec: true, story_159: true do
         .with([order1, order2])
         .and_return 'excellent'
       
-      spree_get :feed
+      spree_get :shipment
       expect(response.body).to eq 'excellent'
     end
 
@@ -27,12 +27,12 @@ describe Spree::GoogleFeedController, feed_spec: true, story_159: true do
 
       it 'updates the last feed upload date in the settings record' do
         expect_any_instance_of(Spree::GoogleTrustedStoreSetting)
-          .to receive(:last_feed_upload=).and_call_original
+          .to receive(:last_shipment_upload=).and_call_original
         
         expect_any_instance_of(Spree::GoogleTrustedStoreSetting)
           .to receive(:save).and_call_original
         
-        spree_get :feed
+        spree_get :shipment
       end
     end
   end
@@ -42,10 +42,12 @@ describe Spree::GoogleFeedController, feed_spec: true, story_159: true do
     let!(:order2) { create :shipped_order }
 
     before :each do
-      [order1, order2].each(&:cancel)
+      [order1, order2].each do |order|
+        order.update_column 'state', 'confirmed'
+      end
 
       allow_any_instance_of(Spree::GoogleTrustedStoreSetting)
-        .to receive(:last_feed_upload)
+        .to receive(:last_cancelation_upload)
         .and_return 10.days.ago
     end
 
@@ -54,7 +56,7 @@ describe Spree::GoogleFeedController, feed_spec: true, story_159: true do
         .with([order1, order2])
         .and_return 'excellent'
       
-      spree_get :feed
+      spree_get :cancelation
       expect(response.body).to eq 'excellent'
     end
 
@@ -65,12 +67,12 @@ describe Spree::GoogleFeedController, feed_spec: true, story_159: true do
 
       it 'updates the last feed upload date in the settings record' do
         expect_any_instance_of(Spree::GoogleTrustedStoreSetting)
-          .to receive(:last_feed_upload=).and_call_original
+          .to receive(:last_cancelation_upload=).and_call_original
         
         expect_any_instance_of(Spree::GoogleTrustedStoreSetting)
           .to receive(:save).and_call_original
         
-        spree_get :feed
+        spree_get :cancelation
       end
     end
   end

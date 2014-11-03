@@ -25,7 +25,7 @@ describe SpreeGoogleTrustedStore::OrderFeed, feed_spec: true, story_159: true do
     it 'spits outs a tab-delimited text file with the necessary attributes' do
       result = subject.process_cancelations([canceled_order])
 
-      expect(result).to include order.number + "\t"
+      expect(result).to include canceled_order.number + "\t"
       expect(result).to include "MerchantCanceled" # TODO add cancelation reason to spree orders
     end
   end

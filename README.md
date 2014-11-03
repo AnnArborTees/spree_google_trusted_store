@@ -19,6 +19,12 @@ bundle
 bundle exec rails g spree_google_trusted_store:install
 ```
 
+Using
+-----
+
+Call google_trusted_store_badge at the bottom of your store layout, and google_trusted_store_order_confirmation
+at the bottom of your order confirmation page.
+
 Testing
 -------
 

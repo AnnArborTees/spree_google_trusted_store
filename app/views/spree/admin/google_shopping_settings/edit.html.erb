@@ -1,0 +1,54 @@
+<% content_for :page_title do %>
+  Google Shopping Settings
+<% end %>
+
+<div class='row'>
+  <%= link_to 'Back', spree.edit_admin_general_settings_path, class: 'button' %>
+</div>
+
+<div class='row'>
+  <%= form_for @google_shopping_setting, url: spree.admin_google_shopping_setting_path(@google_shopping_setting) do |f| %>
+    <div class='form-group'>
+      <div class='form-group'>
+        <%= f.label :merchant_id, 'Google Merchant ID' %>
+        <%= f.text_field :merchant_id, autocomplete: 'off' %>
+      </div>
+      <div class='form-group'>
+        <%= f.label :oauth2_client_id, 'Google Developer Console OAuth client ID' %>
+        <%= f.text_field :oauth2_client_id, autocomplete: 'off' %>
+      </div>
+      <div class='form-group'>
+        <%= f.label :oauth2_client_secret, 'Google Developer Console OAuth client secret' %>
+        <%= f.text_field :oauth2_client_secret, autocomplete: 'off' %>
+      </div>
+      <div class="form-group">
+        <%= f.submit 'Apply Changes' %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<div class='sgts-status-block'>
+  STATUS:
+  <% if @google_shopping_setting.authenticated? %>
+    <span class='sgts-text-success'>AUTHENTICATED <%= '(TEMPORARILY)' if @google_shopping_setting.temporarily_authenticated? %></span>
+  <% else %>
+    <span class='sgts-text-error'>NOT AUTHENTICATED</span>
+  <% end %>
+</div>
+
+<div class='row'>
+  <% if @google_shopping_setting.has_client_and_secret? %>
+    <div class='sgts-status-block'>
+      <%= link_to 'Authenticate', @google_shopping_setting.authentication_url(current_spree_user), class: 'button' %>
+    </div>
+  <% end %>
+  <% if @google_shopping_setting.authenticated? %>
+    <div class='sgts-status-block'>
+      <%= form_for @google_shopping_setting, url: spree.admin_google_shopping_setting_path(@google_shopping_setting) do |f| %>
+        <%= hidden_field_tag :deauthenticate, 'true' %>
+        <%= f.submit 'Deauthenticate' %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

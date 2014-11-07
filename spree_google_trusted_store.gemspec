@@ -18,6 +18,8 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'spree_core', '~> 2.2.1'
   s.add_dependency 'business_time'
+  s.add_dependency 'google-api-client'
+  s.add_dependency 'oauth2'
 
   s.add_development_dependency 'capybara', '~> 2.1'
   s.add_development_dependency 'coffee-rails'

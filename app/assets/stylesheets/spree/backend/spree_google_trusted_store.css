@@ -2,3 +2,13 @@
 Placeholder manifest file.
 the installer will append this file to the app vendored assets here: 'vendor/assets/stylesheets/spree/backend/all.css'
 */
+.sgts-text-error {
+  color: #A20003;
+}
+.sgts-text-success {
+  color: #00A56F;
+}
+.sgts-status-block {
+  font-size: 150%;
+  margin-bottom: 10px;
+}

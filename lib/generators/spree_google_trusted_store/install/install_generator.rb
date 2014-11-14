@@ -1,7 +1,7 @@
 module SpreeGoogleTrustedStore
   module Generators
     class InstallGenerator < Rails::Generators::Base
-
+      source_root File.expand_path('../templates', __FILE__)
       class_option :auto_run_migrations, :type => :boolean, :default => false
 
       def add_javascripts
@@ -29,6 +29,10 @@ module SpreeGoogleTrustedStore
 
       def add_business_time_initializer
         run 'bundle exec rails generate business_time:config'
+      end
+
+      def create_google_shopping_initializer
+        copy_file 'initializer.rb', 'config/initializers/google_shopping.rb'
       end
     end
   end

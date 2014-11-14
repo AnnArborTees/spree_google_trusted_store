@@ -25,6 +25,13 @@ Using
 Call google_trusted_store_badge at the bottom of your store layout, and google_trusted_store_order_confirmation
 at the bottom of your order confirmation page.
 
+Google Shopping
+---------------
+
+To use Google Shopping, make an initializer with GoogleProduct.Attributes.configure do |config| ...
+
+(TODO be more specific)
+
 Testing
 -------
 

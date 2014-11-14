@@ -8,17 +8,17 @@ module Spree
           # settings.current_refresh_token = nil
           settings.current_expiration_date = nil
           settings.save!
-          redirect_to action: :edit
+          redirect_to spree.admin_google_shopping_settings_edit_path
         else
           super
         end
       end
 
       def show
-        redirect_to action: :edit
+        redirect_to spree.admin_google_shopping_settings_edit_path
       end
       def index
-        redirect_to action: :edit
+        redirect_to spree.admin_google_shopping_settings_edit_path
       end
 
       def edit
@@ -45,7 +45,7 @@ module Spree
 
         GoogleShoppingSetting.scramble_state_token!
         
-        redirect_to action: :edit
+        redirect_to spree.admin_google_shopping_settings_edit_path
       end
 
       protected

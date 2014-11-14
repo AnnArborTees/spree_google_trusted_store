@@ -5,12 +5,15 @@ describe Spree::GoogleProduct, shopping_spec: true, story_161: true do
 
   it { is_expected.to have_db_column(:google_product_category).of_type(:string) }
   it { is_expected.to have_db_column(:condition).of_type(:string) }
+  # TODO look into how this should handle product variants / master variant.
+  it { is_expected.to have_db_column(:automatically_update).of_type(:boolean) }
+  it { is_expected.to have_db_column(:adult).of_type(:boolean) }
 
   it { is_expected.to validate_inclusion_of(:google_product_category).in(Spree::GoogleProduct::ATTRIBUTES) }
 
-  describe 'ATTRIBUTES' do
+  describe 'G_ATTRIBUTES' do
     it 'all attributes accepted by google products' do
-      expect(Spree::GoogleProduct::ATTRIBUTES).to eq [
+      expect(Spree::GoogleProduct::G_ATTRIBUTES).to eq [
         :id, :title, :description, :google_product_category, :product_type,
         :link, :mobile_link, :image_link, :additional_image_link, :condition,
 

@@ -1,9 +1,12 @@
-include Spree::Core::Engine.routes.url_helpers
+urls = Class.new do
+  extend Spree::Core::Engine.routes.url_helpers
+  extend Rails.application.routes.url_helpers
+end
 
 Spree::GoogleProduct.configure do |config|
-  # The following define id, title, and description fields to come
+  # The following define offer_id, title, and description fields to come
   # from the variant's name, sku, and description fields respectively.
-  config.define.id(&:sku)
+  config.define.offer_id(&:sku)
   config.define.title(&:name)
   config.define.description(&:description)
   
@@ -14,7 +17,7 @@ Spree::GoogleProduct.configure do |config|
   # This grabs the url to the product the variant represents for the
   # link field.
   config.define.link do |variant|
-    product_url(variant.product)
+    urls.try(:product_url, variant.product)
   end
 
   # NOTE: It is recommended you implement your own definition for
@@ -22,10 +25,10 @@ Spree::GoogleProduct.configure do |config|
   # Google's specifications:
   # https://support.google.com/merchants/answer/188494
   config.define.image_link do |variant|
-    variant.images.first.try(:url)
+    variant.images.first.try(:url) if variant.images
   end
   config.define.image_link do |variant|
-    variant.images[1..-1].map(&:url).to_json
+    variant.images[1..-1].map(&:url).to_json if variant.images[1..-1]
   end
 
   config.define.condition.as_db_column
@@ -33,10 +36,13 @@ Spree::GoogleProduct.configure do |config|
   # Availability will never change with this setting:
   config.define.availability 'in stock'
 
+  config.define.content_language 'en'
+  config.define.target_country 'US'
+
   # Remember, some fields must be structures.
   config.define.price do |variant|
     {
-      value: variant.price,
+      value: variant.price.to_s,
       currency: variant.currency
     }
   end

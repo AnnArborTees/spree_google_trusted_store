@@ -46,6 +46,7 @@ module Spree
       end
 
       # Assigns field to variant using registered attributes/db_fields
+      # TODO WTF?
       def assign(variant, field)
         set_to = variant.method("#{field}=")
 
@@ -57,6 +58,18 @@ module Spree
             set_to.(attribute.call(variant))
           else
             set_to.(attribute)
+          end
+        end
+      end
+
+      def value_of(variant, field)
+        if attribute = db_fields[field]
+          variant.google_product.send(field)
+        elsif attribute = registered_attributes[field]
+          if attribute.respond_to?(:call)
+            attribute.call(variant)
+          else
+            attribute
           end
         end
       end

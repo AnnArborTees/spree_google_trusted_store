@@ -23,14 +23,33 @@ module Spree
       :excluded_destination, :expiration_date
     ]
 
+    belongs_to :variant, class_name: 'Spree::Variant'
+
     def self.configure
-      yield GoogleProduct::Attributes.configure
+      yield GoogleProduct::Attributes.instance
     end
 
-    protected
+    def attributes_hash(camelize_keys = false)
+      G_ATTRIBUTES.map do |attribute|
+        value = Attributes.instance.value_of(variant, attribute)
+        next if value.nil?
+        key = camelize_keys ? camelize(attribute.to_s, value) : attribute
+        next key, value
+      end
+        .compact
+        .to_h
+        .with_indifferent_access
+    end
 
-    def attributes
-      GoogleProduct::Attributes.instance
+    def attributes_json
+      attributes_hash(true).to_json
+    end
+
+    private
+
+    def camelize(key, value)
+      (value.is_a?(Array) ? key.pluralize : key)
+        .camelize(:lower)
     end
   end
 end

@@ -4,23 +4,23 @@ describe Spree::GoogleProduct::Attributes, shopping_spec: true, story_161: true 
   subject { Spree::GoogleProduct::Attributes.instance }
 
   describe '#register_attribute' do
-    describe '#assign' do
+    describe '#value_of' do
       it 'can remember and assign a block' do
         block = proc { 'new_value' }
         variant = double('variant', title: 'test_title')
         expect(block).to receive(:call).with(variant).and_call_original
-        expect(variant).to receive(:title=).with('new_value')
 
         subject.register_attribute(:title, &block)
-        subject.assign(variant, :title)
+        expect(subject.value_of(variant, :title))
+          .to eq 'new_value'
       end
 
-      it 'can remember and assign a constant value' do
+      it 'can remember and value_of a constant value' do
         variant = double('variant', title: 'test_title')
-        expect(variant).to receive(:title=).with('const title')
 
         subject.register_attribute(:title, 'const title')
-        subject.assign(variant, :title)
+        expect(subject.value_of(variant, :title))
+          .to eq 'const title'
       end
 
       it 'issues a warning when a required field failed to be assigned'

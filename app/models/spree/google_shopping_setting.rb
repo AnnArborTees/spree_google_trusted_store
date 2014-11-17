@@ -84,6 +84,16 @@ module Spree
       end
     end
 
+    def update_from(refresh_result)
+      if refresh_result['access_token'] && refresh_result['expires_in']
+        self.current_access_token = refresh_result['access_token']
+        self.current_expiration_date = Time.now + refresh_result['expires_in']
+        save
+      else
+        false
+      end
+    end
+
     def authentication_url(user = nil)
       AUTHENTICATION + '?' + URI.encode_www_form(user_prompt_params(user))
     end
@@ -155,7 +165,7 @@ module Spree
         client_id:     oauth2_client_id,
         client_secret: oauth2_client_secret,
         redirect_uri:  admin_oauth2_callback_url,
-        grant_type:    'authorization_code'
+        grant_type:    'authorization_code',
       }
         .to_param
     end
@@ -169,7 +179,8 @@ module Spree
         scope:         SCOPE,
         state:         self.class.scramble_state_token!,
         access_type:   'offline',
-        login_hint:    user.try(:email)
+        login_hint:    user.try(:email),
+        approval_prompt: 'force'
       }
     end
 

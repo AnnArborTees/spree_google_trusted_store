@@ -3,10 +3,13 @@ class CreateSpreeGoogleProducts < ActiveRecord::Migration
     create_table :spree_google_products do |t|
       t.string :google_product_category
       t.string :condition
-      t.boolean :automatically_update
       t.boolean :adult
+      
+      t.boolean :automatically_update
       t.integer :variant_id
       t.string :product_id
+      t.datetime :last_insertion_date
+      t.text :last_insertion_errors
 
       t.timestamps
     end

@@ -3,6 +3,9 @@ urls = Class.new do
   extend Rails.application.routes.url_helpers
 end
 
+# These settings are how we control how product variant data is sent
+# to Google. It is recommended you look over all of these, and change
+# most of them to fit your specific needs.
 Spree::GoogleProduct.configure do |config|
   # The following define offer_id, title, and description fields to come
   # from the variant's name, sku, and description fields respectively.
@@ -11,7 +14,10 @@ Spree::GoogleProduct.configure do |config|
   config.define.description(&:description)
   
   # This defines the google_product_category field as a configurable
-  # field of Spree::GoogleProduct.
+  # field of Spree::GoogleProduct. If you add as_db_column defines,
+  # you will need to create your own migrations to add the fields.
+  # User added fields will be automatically added to the admin views
+  # for Google Products.
   config.define.google_product_category.as_db_column
   
   # This grabs the url to the product the variant represents for the

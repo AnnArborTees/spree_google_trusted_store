@@ -22,7 +22,7 @@ module Spree
 
       :excluded_destination, :expiration_date,
 
-      :content_language, :target_country
+      :content_language, :target_country, :channel
     ]
 
     belongs_to :variant, class_name: 'Spree::Variant'
@@ -54,40 +54,81 @@ module Spree
     def google_get
       return nil unless has_product_id?
 
-      api_client.execute(
-        api_method: google_shopping.products.get,
-        parameters: {
-          'merchantId' => settings.merchant_id,
-          'productId' => product_id
-        }
-      )
+      refresh_if_unauthorized do
+        api_client.execute(
+          api_method: google_shopping.products.get,
+          parameters: {
+            'merchantId' => settings.merchant_id,
+            'productId' => product_id
+          }
+        )
+      end
     end
 
     def google_insert
-      api_client.execute(
-        api_method: google_shopping.products.insert,
-        parameters: { 'merchantId' => settings.merchant_id },
-        body_object: attributes_hash(true)
-      )
+      refresh_if_unauthorized do
+        api_client.execute(
+          api_method: google_shopping.products.insert,
+          parameters: { 'merchantId' => settings.merchant_id },
+          body_object: attributes_hash(true)
+        )
+      end
     end
 
     def google_delete
-      return nil unless has_product_id?
+      return unless has_product_id?
 
-      api_client.execute(
-        api_method: google_shopping.products.delete,
-        parameters: {
-          'merchantId' => settings.merchant_id,
-          'productId' => product_id
-        }
-      )
+      refresh_if_unauthorized do
+        api_client.execute(
+          api_method: google_shopping.products.delete,
+          parameters: {
+            'merchantId' => settings.merchant_id,
+            'productId' => product_id
+          }
+        )
+      end
     end
 
     def has_product_id?
       !(product_id.nil? || product_id.empty?)
     end
 
+    def merchant_center_link
+      return unless has_product_id?
+
+      "https://google.com/merchants/view?"\
+      "merchantOfferId=#{variant.sku}&channel=0&country=US*language=en"
+    end
+
     protected
+
+    def refresh_if_unauthorized
+      response = yield
+      with_bad_credentials = proc do |error|
+        error['reason']  == 'authError' &&
+        error['message'] == 'Invalid Credentials'
+      end
+      auth_error = response.data.error['errors'].find(&with_bad_credentials)
+
+      if auth_error
+        if api_client.authorization.refresh_token
+          if settings.update_from(api_client.authorization.refresh!)
+            puts 'Got bad authorization from Google. Refreshing token...'
+            response = yield
+            if response.data.error['errors'].find(&with_bad_credentials)
+              puts 'Still no dice!'
+            end
+          end
+        else
+          logger.warn("No refresh token; OAuth authentication required.")
+        end
+      end
+
+      self.last_insertion_errors = response.error['errors'].to_json
+      self.last_insertion_date = Time.now
+      save!
+      response
+    end
 
     def settings
       @gts_settings ||= GoogleShoppingSetting.instance

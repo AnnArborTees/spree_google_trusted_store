@@ -122,18 +122,87 @@ describe Spree::GoogleProduct, shopping_spec: true, story_161: true do
     end
   end
 
+  describe '#merchant_center_link' do
+    google_product.product_id = 'test:product:id'
+    google_product.variant.sku = 'test'
+    expect(google_product.merchant_center_link)
+      .to eq 'https://google.com/merchants/view?merchantOfferId=test&channel=0&country=US&language=en'
+  end
+
   describe '#status' do
     context 'when there is no product_id' do
-      it 'returns "No associated product" or something'
+      it 'returns "No associated product"' do
+        google_product.product_id = nil
+        expect(google_product.status).to eq 'No associated product'
+      end
     end
     context 'when there is a product_id, and a valid google product' do
-      it 'return "Valid" or something'
+      it 'return "Valid"' do
+        google_product.product_id = 'test:product:id'
+        stub_response = double('Response',
+          data: double('Data',
+            title: 'test_title', id: 'test:product:id',
+            error: {}
+          )
+        )
+        expect_any_instance_of(Google::APIClient).to receive(:execute)
+          .with(hash_including(
+              parameters: hash_including('productId' => 'test:product:id')
+            ))
+          .and_return stub_response
+
+        expect(google_product.status).to eq 'Valid'
+      end
     end
-    context 'when there is a product_id, and an invalid google product' do
-      it 'returns "Disapproved or invalid" or something'
+    context 'when there is a product_id, and some warnings' do
+      before(:each) do
+        google_product.product_id = 'test:product:id'
+        stub_response = double('Response',
+          data: double('Data',
+            title: 'test_title', id: 'test:product:id',
+            warnings: [{
+                'domain' => 'something',
+                'reason' => 'test',
+                'message' => 'test warning right here ladies and gentlemen'
+              }]
+          )
+        )
+        expect_any_instance_of(Google::APIClient).to receive(:execute)
+          .with(hash_including(
+              parameters: hash_including('productId' => 'test:product:id')
+            ))
+          .and_return stub_response
+      end
+
+      it 'returns "Valid with warnings"' do
+        expect(google_product.status).to eq 'Valid with warnings'
+      end
+
+      it 'sets #warnings to the warnings from the response data' do
+        google_product.status
+        expect(google_product.warnings).to eq [{
+            'domain' => 'something',
+            'reason' => 'test',
+            'message' => 'test warning right here ladies and gentlemen'
+          }]
+      end
     end
     context 'when there is a product_id, but no google product' do
-      it 'returns "Bad product id" or something (or maybe removes the product id)'
+      it 'sets product_id to nil and returns "No associated product"' do
+        google_product.product_id = 'test:product:id'
+
+        google_product.product_id = 'test:product:id'
+        stub_response = double('Response',
+          data: double('Data',
+            error: { 'errors' => [{'reason' => 'invalid'}] }
+          )
+        )
+        expect_any_instance_of(Google::APIClient).to receive(:execute)
+          .with(hash_including(
+              parameters: hash_including('productId' => 'test:product:id')
+            ))
+          .and_return stub_response
+      end
     end
   end
 end

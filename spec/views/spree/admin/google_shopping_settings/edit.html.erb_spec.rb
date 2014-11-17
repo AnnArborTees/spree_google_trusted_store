@@ -13,12 +13,13 @@ describe 'admin/google_shopping_settings/edit.html.erb', shopping_spec: true, st
     assign(:google_shopping_setting, Spree::GoogleShoppingSetting.create)
   end
 
-  it 'displays a text field for oauth2 keys and merchant id' do
+  it 'displays a text field for oauth2 keys, merchant id, and application name' do
     render!
 
     expect(rendered).to have_css 'input[type="text"][name="google_shopping_setting[merchant_id]"]'
     expect(rendered).to have_css 'input[type="text"][name="google_shopping_setting[oauth2_client_id]"]'
     expect(rendered).to have_css 'input[type="text"][name="google_shopping_setting[oauth2_client_secret]"]'
+    expect(rendered).to have_css 'input[type="text"][name="google_shopping_setting[google_api_appplication_name]"]'
   end
 
   context 'when authenticated' do

@@ -1,7 +1,7 @@
 module Spree
   class GoogleProduct < ActiveRecord::Base
     G_ATTRIBUTES = [
-      :id, :title, :description, :google_product_category, :product_type,
+      :offer_id, :title, :description, :google_product_category, :product_type,
       :link, :mobile_link, :image_link, :additional_image_link, :condition,
 
       :availability, :availability_date, :price, :sale_price,
@@ -20,7 +20,9 @@ module Spree
 
       :adult, :adwords_grouping, :adwords_labels, :adwords_redirect,
 
-      :excluded_destination, :expiration_date
+      :excluded_destination, :expiration_date,
+
+      :content_language, :target_country
     ]
 
     belongs_to :variant, class_name: 'Spree::Variant'
@@ -45,7 +47,63 @@ module Spree
       attributes_hash(true).to_json
     end
 
-    private
+    def status
+      raise 'implement me plz'
+    end
+
+    def google_get
+      return nil unless has_product_id?
+
+      api_client.execute(
+        api_method: google_shopping.products.get,
+        parameters: {
+          'merchantId' => settings.merchant_id,
+          'productId' => product_id
+        }
+      )
+    end
+
+    def google_insert
+      api_client.execute(
+        api_method: google_shopping.products.insert,
+        parameters: { 'merchantId' => settings.merchant_id },
+        body_object: attributes_hash(true)
+      )
+    end
+
+    def google_delete
+      return nil unless has_product_id?
+
+      api_client.execute(
+        api_method: google_shopping.products.delete,
+        parameters: {
+          'merchantId' => settings.merchant_id,
+          'productId' => product_id
+        }
+      )
+    end
+
+    def has_product_id?
+      !(product_id.nil? || product_id.empty?)
+    end
+
+    protected
+
+    def settings
+      @gts_settings ||= GoogleShoppingSetting.instance
+    end
+
+    def api_client
+      @api_client ||= Google::APIClient.new(
+          application_name: settings.google_api_appplication_name || 'Spree',
+          generate_authenticated_request: :oauth_2,
+          auto_refresh_token: true
+        ).tap(&settings.method(:set_api_client_info))
+    end
+
+    def google_shopping
+      @google_shopping ||= api_client.discovered_api('content', 'v2')
+    end
 
     def camelize(key, value)
       (value.is_a?(Array) ? key.pluralize : key)

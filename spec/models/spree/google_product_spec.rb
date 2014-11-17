@@ -18,7 +18,7 @@ describe Spree::GoogleProduct, shopping_spec: true, story_161: true do
   describe 'G_ATTRIBUTES' do
     it 'all attributes accepted by google products' do
       expect(Spree::GoogleProduct::G_ATTRIBUTES).to eq [
-        :id, :title, :description, :google_product_category, :product_type,
+        :offer_id, :title, :description, :google_product_category, :product_type,
         :link, :mobile_link, :image_link, :additional_image_link, :condition,
 
         :availability, :availability_date, :price, :sale_price,
@@ -79,7 +79,7 @@ describe Spree::GoogleProduct, shopping_spec: true, story_161: true do
     end
   end
 
-  describe '#google_insert' do
+  describe '#google_insert', google_: true do
     it 'executes the google api product insert method' do
       expect_any_instance_of(Google::APIClient).to receive(:execute)
         .with(hash_including(
@@ -90,7 +90,7 @@ describe Spree::GoogleProduct, shopping_spec: true, story_161: true do
     end
   end
 
-  describe '#google_get' do
+  describe '#google_get', google_: true do
     context 'when a product_id is present' do
       it 'executes the google api product get method' do
         allow(google_product).to receive(:product_id).and_return 'test123'
@@ -110,7 +110,7 @@ describe Spree::GoogleProduct, shopping_spec: true, story_161: true do
     end
   end
 
-  describe '#google_delete' do
+  describe '#google_delete', google_: true do
     it 'executes google api product delete method' do
       allow(google_product).to receive(:product_id).and_return 'test123'
       expect_any_instance_of(Google::APIClient).to receive(:execute)
@@ -123,19 +123,22 @@ describe Spree::GoogleProduct, shopping_spec: true, story_161: true do
   end
 
   describe '#merchant_center_link' do
-    google_product.product_id = 'test:product:id'
-    google_product.variant.sku = 'test'
-    expect(google_product.merchant_center_link)
-      .to eq 'https://google.com/merchants/view?merchantOfferId=test&channel=0&country=US&language=en'
+    it 'is a link leading to google.com/merchants' do
+      google_product.product_id = 'test:product:id'
+      google_product.variant.sku = 'test'
+      expect(google_product.merchant_center_link)
+        .to eq 'https://google.com/merchants/view?merchantOfferId=test&channel=0&country=US&language=en'
+    end
   end
 
-  describe '#status' do
+  describe '#status', status: true do
     context 'when there is no product_id' do
       it 'returns "No associated product"' do
         google_product.product_id = nil
         expect(google_product.status).to eq 'No associated product'
       end
     end
+    
     context 'when there is a product_id, and a valid google product' do
       it 'return "Valid"' do
         google_product.product_id = 'test:product:id'
@@ -154,6 +157,7 @@ describe Spree::GoogleProduct, shopping_spec: true, story_161: true do
         expect(google_product.status).to eq 'Valid'
       end
     end
+    
     context 'when there is a product_id, and some warnings' do
       before(:each) do
         google_product.product_id = 'test:product:id'
@@ -187,11 +191,11 @@ describe Spree::GoogleProduct, shopping_spec: true, story_161: true do
           }]
       end
     end
+    
     context 'when there is a product_id, but no google product' do
       it 'sets product_id to nil and returns "No associated product"' do
         google_product.product_id = 'test:product:id'
 
-        google_product.product_id = 'test:product:id'
         stub_response = double('Response',
           data: double('Data',
             error: { 'errors' => [{'reason' => 'invalid'}] }
@@ -202,6 +206,8 @@ describe Spree::GoogleProduct, shopping_spec: true, story_161: true do
               parameters: hash_including('productId' => 'test:product:id')
             ))
           .and_return stub_response
+
+        google_product.status
       end
     end
   end

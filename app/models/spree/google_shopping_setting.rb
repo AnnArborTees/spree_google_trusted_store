@@ -43,7 +43,7 @@ module Spree
     end
 
     def set_api_client_info(api_client)
-      api_client.authorization = :oauth_2
+      # api_client.authorization = :oauth_2
       set_auth_info(api_client.authorization)
       api_client.auto_refresh_token = true
     end

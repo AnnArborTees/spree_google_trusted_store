@@ -35,7 +35,7 @@ module Spree
       G_ATTRIBUTES.map do |attribute|
         value = Attributes.instance.value_of(variant, attribute)
         next if value.nil?
-        key = camelize_keys ? camelize(attribute.to_s, value) : attribute
+        key = camelize_keys ? camelize(attribute.to_s) : attribute
         next key, value
       end
         .compact
@@ -102,21 +102,30 @@ module Spree
 
     protected
 
-    def refresh_if_unauthorized
-      response = yield
-      with_bad_credentials = proc do |error|
+    def bad_credential_errors_from(response)
+      response.data.try(:error).try(:find) do |error|
         error['reason']  == 'authError' &&
         error['message'] == 'Invalid Credentials'
       end
-      auth_error = response.data.error['errors'].find(&with_bad_credentials)
+    end
+
+    def errors_from(response)
+      response.data.try(:error)
+                   .try(:[], 'errors')
+                   .try(:to_json)
+    end
+
+    def refresh_if_unauthorized
+      response = yield
+      auth_error = bad_credential_errors_from(response)
 
       if auth_error
         if api_client.authorization.refresh_token
           if settings.update_from(api_client.authorization.refresh!)
             puts 'Got bad authorization from Google. Refreshing token...'
             response = yield
-            if response.data.error['errors'].find(&with_bad_credentials)
-              puts 'Still no dice!'
+            if bad_credential_errors_from(response)
+              puts 'Still no dice on authentication!'
             end
           end
         else
@@ -124,10 +133,21 @@ module Spree
         end
       end
 
-      self.last_insertion_errors = response.error['errors'].to_json
+      self.last_insertion_errors = errors_from(response)
       self.last_insertion_date = Time.now
+      # TODO so if product?(response), we should assign self.product_id to 
+      # response.data.id.
+      # Additionally, we should maybe assign last_insertion_errors to 
+      # response.data.warnings, or make a last_insertion_warnings field in
+      # this model, so that people can see the warnings for any given variant.
+      # Get that done, and start incorperating self.automatically_update, and
+      # maybe make a view for manually updating variants.
       save!
       response
+    end
+
+    def product?(response)
+      response.data.is_a?(Google::APIClient::Schema::Content::V2::Product)
     end
 
     def settings
@@ -146,9 +166,11 @@ module Spree
       @google_shopping ||= api_client.discovered_api('content', 'v2')
     end
 
-    def camelize(key, value)
-      (value.is_a?(Array) ? key.pluralize : key)
-        .camelize(:lower)
+    def camelize(key)
+      case key
+      when 'additional_image_link' then 'additionalImageLinks'
+      else key.camelize(:lower)
+      end
     end
   end
 end

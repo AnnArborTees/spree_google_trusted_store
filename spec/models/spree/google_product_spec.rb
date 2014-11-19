@@ -8,7 +8,6 @@ describe Spree::GoogleProduct, shopping_spec: true, story_161: true do
   it { is_expected.to have_db_column(:condition).of_type(:string) }
   it { is_expected.to have_db_column(:adult).of_type(:boolean) }
   # === Internally used fields ===
-  # TODO look into how this should handle product variants / master variant.
   it { is_expected.to have_db_column(:automatically_update).of_type(:boolean) }
   it { is_expected.to have_db_column(:product_id).of_type(:string) }
   it { is_expected.to have_db_column(:last_insertion_date).of_type(:datetime) }
@@ -80,6 +79,22 @@ describe Spree::GoogleProduct, shopping_spec: true, story_161: true do
       hash = JSON.parse(result)
       expect(hash.keys).to include 'imageLink'
       expect(hash.keys).to include 'additionalImageLinks'
+    end
+  end
+
+  describe '#custom_fields' do
+    let(:column_names) do
+      Spree::GoogleProduct.column_names + [
+        'added_field', 'other_added_field'
+      ]
+    end
+
+    it 'returns stray field names from column_names' do
+      allow(Spree::GoogleProduct).to receive(:colum_names)
+                                 .and_return column_names
+
+      expect(google_product.custom_fields)
+        .to eq ['added_field', 'other_added_field']
     end
   end
 

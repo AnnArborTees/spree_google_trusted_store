@@ -10,6 +10,7 @@ class CreateSpreeGoogleProducts < ActiveRecord::Migration
       t.string :product_id
       t.datetime :last_insertion_date
       t.text :last_insertion_errors
+      t.text :last_insertion_warnings
 
       t.timestamps
     end

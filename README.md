@@ -25,6 +25,8 @@ Using
 Call google_trusted_store_badge at the bottom of your store layout, and google_trusted_store_order_confirmation
 at the bottom of your order confirmation page.
 
+Additionally, checkout the generated google_product.rb initializer after installing.
+
 Google Shopping
 ---------------
 

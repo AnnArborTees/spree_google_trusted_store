@@ -32,6 +32,7 @@ module Spree
     end
 
     def attributes_hash(camelize_keys = false)
+      variant.reload
       G_ATTRIBUTES.map do |attribute|
         value = Attributes.instance.value_of(variant, attribute)
         next if value.nil?
@@ -47,12 +48,8 @@ module Spree
       attributes_hash(true).to_json
     end
 
-    def status
-      raise 'implement me plz'
-    end
-
     def google_get
-      return nil unless has_product_id?
+      return unless has_product_id?
 
       refresh_if_unauthorized do
         api_client.execute(
@@ -66,7 +63,7 @@ module Spree
     end
 
     def google_insert
-      refresh_if_unauthorized do
+      refresh_if_unauthorized(true) do
         api_client.execute(
           api_method: google_shopping.products.insert,
           parameters: { 'merchantId' => settings.merchant_id },
@@ -96,6 +93,8 @@ module Spree
     def merchant_center_link
       return unless has_product_id?
 
+      # TODO This should maybe not be hardcoded for
+      # channel/country/language?
       "https://google.com/merchants/view?"\
       "merchantOfferId=#{variant.sku}&channel=0&country=US*language=en"
     end
@@ -110,12 +109,20 @@ module Spree
     end
 
     def errors_from(response)
-      response.data.try(:error)
-                   .try(:[], 'errors')
+      begin
+        response.data.error['errors']
+      rescue NoMethodError
+        []
+      end
+        .to_json
+    end
+
+    def warnings_from(response)
+      response.data.try(:warnings)
                    .try(:to_json)
     end
 
-    def refresh_if_unauthorized
+    def refresh_if_unauthorized(is_insert = false)
       response = yield
       auth_error = bad_credential_errors_from(response)
 
@@ -133,15 +140,12 @@ module Spree
         end
       end
 
-      self.last_insertion_errors = errors_from(response)
-      self.last_insertion_date = Time.now
-      # TODO so if product?(response), we should assign self.product_id to 
-      # response.data.id.
-      # Additionally, we should maybe assign last_insertion_errors to 
-      # response.data.warnings, or make a last_insertion_warnings field in
-      # this model, so that people can see the warnings for any given variant.
-      # Get that done, and start incorperating self.automatically_update, and
-      # maybe make a view for manually updating variants.
+      if is_insert
+        self.last_insertion_errors   = errors_from(response)
+        self.last_insertion_warnings = warnings_from(response)
+        self.last_insertion_date     = Time.now
+      end
+      self.product_id = response.data.id if product?(response)
       save!
       response
     end

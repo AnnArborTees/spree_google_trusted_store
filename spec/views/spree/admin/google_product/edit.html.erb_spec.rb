@@ -45,13 +45,20 @@ describe 'spree/admin/google_product/edit.html.erb', story_161: true do
     expect(rendered).to have_css 'input[type="select"][name="google_product[google_product_category]"]'
     expect(rendered).to have_css 'input[type="text"][name="google_product[condition]"]'
     expect(rendered).to have_css 'input[type="checkbox"][name="google_product[adult]"]'
+    expect(rendered).to have_css 'input[type="checkbox"][name="google_product[automatically_update]"]'
+  end
+
+  it 'displays the google product id' do
+    allow(google_product).to receive(:product_id).and_return 'test:prod:id'
+    render!
+
+    expect(rendered).to have_content 'test:prod:id'
   end
 
   context 'when the product has errors' do
     it 'renders the messages for each error' do
       allow(google_product).to receive(:last_insertion_errors)
                            .and_return test_errors
-
       render!
 
       expect(rendered).to have_content "[something] your product simply isn't good enough" 
@@ -63,7 +70,6 @@ describe 'spree/admin/google_product/edit.html.erb', story_161: true do
     it 'renders the messages for each error' do
       allow(google_product).to receive(:last_insertion_warnings)
                            .and_return test_warnings
-
       render!
 
       expect(rendered).to have_content '[description] your description sucks, please change it'

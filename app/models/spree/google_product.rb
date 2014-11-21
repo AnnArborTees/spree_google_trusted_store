@@ -95,7 +95,7 @@ module Spree
     end
 
     def google_insert
-      refresh_if_unauthorized(true) do
+      refresh_if_unauthorized(:after_insert) do
         api_client.execute(
           api_method: google_shopping.products.insert,
           parameters: { 'merchantId' => settings.merchant_id },
@@ -107,7 +107,7 @@ module Spree
     def google_delete
       return unless has_product_id?
 
-      refresh_if_unauthorized do
+      refresh_if_unauthorized(:after_delete) do
         api_client.execute(
           api_method: google_shopping.products.delete,
           parameters: {
@@ -157,17 +157,17 @@ module Spree
                    .try(:to_json)
     end
 
-    def refresh_if_unauthorized(is_insert = false)
+    def refresh_if_unauthorized(after_method = nil)
       response = yield
       auth_error = bad_credential_errors_from(response)
 
       if auth_error
         if api_client.authorization.refresh_token
           if settings.update_from(api_client.authorization.refresh!)
-            puts 'Got bad authorization from Google. Refreshing token...'
+            logger.info 'Got bad authorization from Google. Refreshing token...'
             response = yield
             if bad_credential_errors_from(response)
-              puts 'Still no dice on authentication!'
+              logger.warn 'Still no dice on authentication!'
             end
           end
         else
@@ -175,18 +175,30 @@ module Spree
         end
       end
 
-      if is_insert
-        self.last_insertion_errors   = errors_from(response)
-        self.last_insertion_warnings = warnings_from(response)
-        self.last_insertion_date     = Time.now
-      end
+      send(after_method, response) if after_method
       self.product_id = response.data.id if product?(response)
       save!
       response
     end
 
+    def after_insert(response)
+      self.last_insertion_errors   = errors_from(response)
+      self.last_insertion_warnings = warnings_from(response)
+      self.last_insertion_date     = Time.now
+    end
+
+    def after_delete(response)
+      self.product_id = nil
+      self.last_insertion_warnings = nil
+      self.last_insertion_errors = nil
+    end
+
     def product?(response)
-      response.data.is_a?(Google::APIClient::Schema::Content::V2::Product)
+      begin
+        response.data.is_a?(Google::APIClient::Schema::Content::V2::Product)
+      rescue NameError
+        false
+      end
     end
 
     def settings

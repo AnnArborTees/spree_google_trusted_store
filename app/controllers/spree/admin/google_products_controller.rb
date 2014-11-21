@@ -15,26 +15,37 @@ module Spree
 
         finish = -> { redirect_to action: 'edit' }
 
-        if @google_product.update_attributes permitted_params[:google_product]
+        if !params[:do_delete] && update_google_product!
           update_flash :success, "Successfully updated local properties."
         else
           update_flash :error, @google_product.errors.full_messages.join(', ')
           finish = -> { render 'edit', locals: locals }
         end
+        
         if params[:do_insert] && params[:do_insert].include?('Upload')
-          response = @google_product.google_insert 
-
-          if errors_in?(response)
-            update_flash :error, 'Failed to upload to Google'
-          else
-            update_flash :success, 'Successfully uploaded to Google!'
-          end
+          google(:insert, 'upload to Google')
+        elsif params[:do_delete]
+          google(:delete, 'remove from Google')
         end
         
         finish.call
       end
 
       private
+
+      def google(method, verb)
+        response = @google_product.send("google_#{method}")
+
+        if errors_in?(response)
+          update_flash :error, "Failed to #{verb}."
+        else
+          update_flash :success, "Successfully #{verb}!"
+        end
+      end
+
+      def update_google_product!
+        @google_product.update_attributes permitted_params[:google_product]
+      end
 
       def update_flash(key, value)
         if key == :success && flash_okay?(:error)
@@ -74,7 +85,7 @@ module Spree
 
       def permitted_params
         params.permit(
-          :do_insert,
+          :do_insert, :do_delete,
           google_product: Spree::GoogleProduct::Attributes.instance
             .db_field_names + %i(
               automatically_update

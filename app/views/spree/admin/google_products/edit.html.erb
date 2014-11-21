@@ -3,10 +3,14 @@
 <% end %>
 
 <div class='row'>
-  <%= link_to '<- Variant', edit_admin_product_variant_path(variant.product, variant), class: 'button' %>
+  <%= link_to '<- Variant', (variant.is_master? ? admin_product_variants_path(variant.product) : edit_admin_product_variant_path(variant.product, variant)), class: 'button' %>
 </div>
 
-<% if google_product.last_insertion_date && google_product.product_id %>
+<% if variant.is_master? && variant.product.variants.any? %>
+  <div class='gproduct-block'>
+    Master Variant Google Shopping Settings
+  </div>
+<% elsif google_product.last_insertion_date && google_product.product_id %>
   <div class='gproduct-block'>
     Google Shopping Product ID:
     <%= google_product.product_id %>
@@ -36,7 +40,7 @@
   </div>
 <% end %>
 
-<% unless JSON.parse(google_product.last_insertion_warnings).empty? %>
+<% unless JSON.parse(google_product.last_insertion_warnings || '[]').empty? %>
   <div class='gproduct-block'>
     Warnings from last attempt:
   </div>
@@ -63,9 +67,11 @@
     </div>
 
     <div class='gproduct-block'>
-      <%= f.submit 'Update and Upload', name: 'do_insert' %>
+      <% unless variant.is_master? && variant.product.variants.any? %>
+        <%= f.submit 'Update and Upload', name: 'do_insert' %>
+        <%= f.submit 'Remove from Google', name: 'do_delete', class: 'danger' %>
+      <% end %>
       <%= f.submit 'Update Locally', name: 'do_insert' %>
-      <%= f.submit 'Remove from Google', name: 'do_delete' %>
     </div>
   <% end %>
 </div>

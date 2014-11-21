@@ -71,9 +71,9 @@ Spree::GoogleProduct.configure do |config|
     }
   end
 
-  # TODO Look into whether or not master variant should be taken into
-  # consideration here.
   config.define.item_group_id do |variant|
     variant.is_master? ? nil : variant.product_id
   end
+
+  # TODO add shipping fields!
 end

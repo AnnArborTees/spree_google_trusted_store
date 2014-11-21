@@ -1,3 +1,5 @@
+require 'google/api_client'
+
 module Spree
   class GoogleProduct < ActiveRecord::Base
     G_ATTRIBUTES = [

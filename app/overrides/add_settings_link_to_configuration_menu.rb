@@ -50,7 +50,16 @@ Deface::Override.new(virtual_path: 'spree/admin/variants/edit',
                      name: 'variant_edit_google_link',
                      insert_before: '[data-hook="admin_variant_edit_form"]',
                      text: %(
-                       <%= link_to 'Google Shopping', spree.admin_google_product_path(variant.google_product ||= Spree::GoogleProduct.new) %>
+                       <%= link_to 'Google Shopping', spree.admin_google_product_path(@variant.google_product ||= Spree::GoogleProduct.new) %>
                      ),
                      disabled: false)
 
+Deface::Override.new(virtual_path:  "spree/admin/shared/_product_tabs",
+                     name:          "product_google_product_link",
+                     insert_bottom: "[data-hook='admin_product_tabs']",
+                     text: %(
+                      <%= content_tag :li do %>
+                        <%= link_to_with_icon 'icon-edit', 'Google Shopping', spree.admin_google_product_path(@product.master.google_product ||= Spree::GoogleProduct.new) %>
+                      <% end %>
+                     ),
+                     disabled: false)

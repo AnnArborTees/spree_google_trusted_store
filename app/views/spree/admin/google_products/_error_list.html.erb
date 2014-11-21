@@ -7,11 +7,11 @@
   </thead>
 
   <tbody>
-    <tr class='<%= cycle("odd", "even") %>'>
-      <% google_product.format(error_method).each do |error| %>
-        <td class='align-center'><%= error[:reason] %></td>
-        <td class='align-center'><%= error[:message] %></td>
-      <% end %>
-    </tr>
+    <% google_product.format(error_method).each do |error| %>
+      <tr class='<%= cycle("odd", "even") %>'>
+          <td class='align-center'><%= error[:reason] %></td>
+          <td class='align-center'><%= error[:message] %></td>
+      </tr>
+    <% end %>
   </tbody>
 </table>

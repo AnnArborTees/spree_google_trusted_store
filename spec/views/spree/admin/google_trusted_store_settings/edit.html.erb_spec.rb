@@ -4,6 +4,8 @@ describe 'spree/admin/google_trusted_store_settings/edit.html.erb', settings_spe
   before(:each) do
     allow(view.spree).to receive(:admin_general_settings_path)
       .and_return 'http://duhh.com/'
+    allow(view.spree).to receive(:edit_admin_general_settings_path)
+      .and_return 'http://duhh.com/'
     allow(view.spree).to receive(:google_trusted_store_shipment_feed_url)
       .and_return 'shipment feed url'
     allow(view.spree).to receive(:google_trusted_store_cancelation_feed_url)

@@ -27,8 +27,16 @@ module Spree
 
     belongs_to :variant, class_name: 'Spree::Variant'
 
-    def self.configure
+    def self.configure(&block)
       yield GoogleProduct::Attributes.instance
+    end
+
+    def self.custom_fields
+      column_names - %w(
+        google_product_category adult automatically_update
+        product_id last_insertion_date last_insertion_errors
+        last_insertion_warnings variant_id id variant
+      )
     end
 
     def attributes_hash(camelize_keys = false)
@@ -53,7 +61,8 @@ module Spree
         :last_insertion_date, :last_insertion_errors,
         :last_insertion_warnings, :product_id,
         :automatically_update, :condition, :adult,
-        :google_product_category
+        :google_product_category, :updated_at,
+        :created_at
       ]
     end
 
@@ -118,8 +127,8 @@ module Spree
 
       # TODO This should maybe not be hardcoded for
       # channel/country/language?
-      "https://google.com/merchants/view?"\
-      "merchantOfferId=#{variant.sku}&channel=0&country=US*language=en"
+      "https://www.google.com/merchants/view?"\
+      "merchantOfferId=#{variant.sku}&channel=0&country=US&language=en"
     end
 
     protected

@@ -83,7 +83,7 @@ describe Spree::GoogleProduct, shopping_spec: true, story_161: true do
     end
   end
 
-  describe '#custom_fields' do
+  describe '.custom_fields' do
     let(:column_names) do
       Spree::GoogleProduct.column_names + [
         'added_field', 'other_added_field'
@@ -94,8 +94,8 @@ describe Spree::GoogleProduct, shopping_spec: true, story_161: true do
       allow(Spree::GoogleProduct).to receive(:colum_names)
                                  .and_return column_names
 
-      expect(google_product.custom_fields)
-        .to eq ['added_field', 'other_added_field']
+      expect(Spree::GoogleProduct.custom_fields)
+        .to eq ['condition', 'added_field', 'other_added_field']
     end
   end
 
@@ -148,7 +148,7 @@ describe Spree::GoogleProduct, shopping_spec: true, story_161: true do
         google_product.product_id = 'test:product:id'
         google_product.variant.sku = 'test'
         expect(google_product.merchant_center_link)
-          .to eq 'https://google.com/merchants/view?merchantOfferId=test&channel=0&country=US&language=en'
+          .to eq 'https://www.google.com/merchants/view?merchantOfferId=test&channel=0&country=US&language=en'
       end
     end
     context 'when product_id is nil' do

@@ -18,7 +18,21 @@ Spree::GoogleProduct.configure do |config|
   # you will need to create your own migrations to add the fields.
   # User added fields will be automatically added to the admin views
   # for Google Products.
-  config.define.google_product_category.as_db_column
+  # 
+  # Not passing a block will default to { |f, n| f.text_field(n) }
+  config.define.google_product_category.as_db_column do |f|
+    categories = Net::HTTP.get(
+      URI 'http://www.google.com/basepages/producttype/taxonomy.en-US.txt'
+    )
+      .split("\n")[1..-1]
+
+    f.collection_select(
+      :google_product_category,
+      categories, :to_s, :to_s,
+      { include_blank: 'Valid Product Categories' },
+      { class: 'select2-min-len-4' }
+    )
+  end
   
   # This grabs the url to the product the variant represents for the
   # link field.
@@ -37,15 +51,19 @@ Spree::GoogleProduct.configure do |config|
     variant.images[1..-1].map(&:url).to_json if variant.images[1..-1]
   end
 
-  config.define.condition.as_db_column
+  config.define.condition.as_db_column do |f|
+    f.select :condition, %w(new used refurbished)
+  end
+  config.define.adult.as_db_column { |f| f.check_box(:adult) }
 
   # Availability will never change with this setting:
   config.define.availability 'in stock'
 
+  config.define.channel 'online'
   config.define.content_language 'en'
   config.define.target_country 'US'
 
-  # Remember, some fields must be structures.
+  # Struct fields can be defined as hashes.
   config.define.price do |variant|
     {
       value: variant.price.to_s,
@@ -58,6 +76,4 @@ Spree::GoogleProduct.configure do |config|
   config.define.item_group_id do |variant|
     variant.is_master? ? nil : variant.product_id
   end
-
-  config.define.adult.as_db_column
 end

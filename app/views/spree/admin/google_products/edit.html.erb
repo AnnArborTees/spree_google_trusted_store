@@ -15,6 +15,9 @@
     Last uploaded at: 
     <%= google_product.friendly_last_insert_date %>
   </div>
+  <div class='gproduct-block'>
+    <%= link_to 'Merchant Center Entry', google_product.merchant_center_link %>
+  </div>
 <% elsif google_product.last_insertion_date && google_product.last_insertion_errors %>
 
   <div class='gproduct-block'>
@@ -41,12 +44,27 @@
 <% end %>
 
 <div>
+  <div class='gproduct-block'>
+    Last changed at:
+    <%= google_product.updated_at.strftime('%b %d, %Y; %r') %>
+  </div>
+
   <%= form_for google_product, url: spree.admin_google_product_path(google_product) do |f| %>
-    <%= hidden_field_tag 'do_insert', 'true' %>
-    <%= f.label :automatically_update, 'Upload on save' %>
-    <%= f.check_box :automatically_update %>
+    <% Spree::GoogleProduct::Attributes.instance.db_field_names.each do |field| %>
+      <div class="field">
+        <%= f.label field %>
+        <%= Spree::GoogleProduct::Attributes.instance.render_db_field(self, f, field) %>
+      </div>
+    <% end %>
+
+    <div class='field'>
+      <%= f.label :automatically_update, 'Upload on product/variant save' %>
+      <%= f.check_box :automatically_update %>
+    </div>
+
     <div class='gproduct-block'>
-      <%= f.submit 'Upload' %>
+      <%= f.submit 'Update and Upload', name: 'do_insert' %>
+      <%= f.submit 'Update Locally', name: 'do_insert' %>
     </div>
   <% end %>
 </div>

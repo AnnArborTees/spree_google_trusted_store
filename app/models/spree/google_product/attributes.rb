@@ -28,7 +28,7 @@ module Spree
       end
 
       def self.instance
-        @instance ||= new
+        @@instance ||= new
       end
 
       def self.configure(&block)

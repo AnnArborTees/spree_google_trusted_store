@@ -125,9 +125,12 @@ module Spree
     protected
 
     def bad_credential_errors_from(response)
-      response.data.try(:error).try(:find) do |error|
-        error['reason']  == 'authError' &&
-        error['message'] == 'Invalid Credentials'
+      begin
+        response.data.error['errors'].find do |error|
+          error['reason']  == 'authError' &&
+          error['message'] == 'Invalid Credentials'
+        end
+      rescue NoMethodError
       end
     end
 

@@ -19,13 +19,14 @@ module Spree
         end
         if params[:do_insert]
           response = @google_product.google_insert 
+
           if errors_in?(response)
             flash[:error] = 'Failed to upload to Google'
           else
             flash[:success] = 'Successfully uploaded to Google!'
           end
         end
-        render 'edit', locals: locals
+        redirect_to action: 'edit'
       end
 
       private

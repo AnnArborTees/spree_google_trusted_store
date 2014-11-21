@@ -48,6 +48,29 @@ module Spree
       attributes_hash(true).to_json
     end
 
+    def custom_attributes
+      self.class.column_names - [
+        :last_insertion_date, :last_insertion_errors,
+        :last_insertion_warnings, :product_id,
+        :automatically_update, :condition, :adult,
+        :google_product_category
+      ]
+    end
+
+    def friendly_last_insert_date
+      last_insertion_date.strftime('%b %d, %Y; %r')
+    end
+
+    def format(func)
+      data = JSON.parse send(func)
+      data.map do |datum|
+        {
+          reason: datum['reason'].underscore.humanize,
+          message: datum['message']
+        }
+      end
+    end
+
     def google_get
       return unless has_product_id?
 

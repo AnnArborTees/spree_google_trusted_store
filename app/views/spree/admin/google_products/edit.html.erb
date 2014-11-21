@@ -1,0 +1,53 @@
+<% content_for :page_title do %>
+  Google Shopping Settings for <%= variant.sku %>
+<% end %>
+
+<div class='row'>
+  <%= link_to '<- Variant', edit_admin_product_variant_path(variant.product, variant), class: 'button' %>
+</div>
+
+<% if google_product.last_insertion_date && google_product.product_id %>
+  <div class='gproduct-block'>
+    Google Shopping Product ID:
+    <%= google_product.product_id %>
+  </div>
+  <div class='gproduct-block'>
+    Last uploaded at: 
+    <%= google_product.friendly_last_insert_date %>
+  </div>
+<% elsif google_product.last_insertion_date && google_product.last_insertion_errors %>
+
+  <div class='gproduct-block'>
+    Last upload attempt:
+    <%= google_product.friendly_last_insert_date %>
+  </div>
+
+  <div class='gproduct-block'>
+    Errors from last attempt:
+  </div>
+  <%= render 'error_list', google_product: google_product, error_method: :last_insertion_errors %>
+<% else %>
+
+  <div class='gproduct-block'>
+    Not uploaded to Google.
+  </div>
+<% end %>
+
+<% unless JSON.parse(google_product.last_insertion_warnings).empty? %>
+  <div class='gproduct-block'>
+    Warnings from last attempt:
+  </div>
+  <%= render 'error_list', google_product: google_product, error_method: :last_insertion_warnings %>
+<% end %>
+
+<div>
+  <%= form_for google_product, url: spree.admin_google_product_path(google_product) do |f| %>
+    <%= hidden_field_tag 'do_insert', 'true' %>
+    <%= f.label :automatically_update, 'Upload on save' %>
+    <%= f.check_box :automatically_update %>
+    <div class='gproduct-block'>
+      <%= f.submit 'Upload' %>
+    </div>
+  <% end %>
+</div>
+

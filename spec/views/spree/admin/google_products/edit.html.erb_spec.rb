@@ -1,7 +1,8 @@
 require 'spec_helper'
 
 describe 'spree/admin/google_product/edit.html.erb', story_161: true do
-  let(:google_product) { Spree::GoogleProduct.new }
+  let(:variant) { create :variant }
+  let(:google_product) { variant.google_product = Spree::GoogleProduct.new }
 
   let(:test_errors) do
     [{
@@ -35,7 +36,10 @@ describe 'spree/admin/google_product/edit.html.erb', story_161: true do
 
 
   def render!
-    locals = { google_product: google_product }
+    locals = {
+      google_product: google_product,
+      variant: variant
+    }
     render template: 'spree/admin/google_product/edit', locals: locals
   end
 

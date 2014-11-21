@@ -12,6 +12,7 @@ describe Spree::GoogleProduct, shopping_spec: true, story_161: true do
   it { is_expected.to have_db_column(:product_id).of_type(:string) }
   it { is_expected.to have_db_column(:last_insertion_date).of_type(:datetime) }
   it { is_expected.to have_db_column(:last_insertion_errors).of_type(:text) }
+  it { is_expected.to have_db_column(:last_insertion_warnings).of_type(:text) }
 
   # it { is_expected.to validate_inclusion_of(:google_product_category) }
 

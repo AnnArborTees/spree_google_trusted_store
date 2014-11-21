@@ -1,0 +1,17 @@
+<table class='index'>
+  <thead>
+    <tr>
+      <th>Reason</th>
+      <th>Message</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr class='<%= cycle("odd", "even") %>'>
+      <% google_product.format(error_method).each do |error| %>
+        <td class='align-center'><%= error[:reason] %></td>
+        <td class='align-center'><%= error[:message] %></td>
+      <% end %>
+    </tr>
+  </tbody>
+</table>

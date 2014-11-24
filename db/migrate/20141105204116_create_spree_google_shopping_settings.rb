@@ -7,6 +7,7 @@ class CreateSpreeGoogleShoppingSettings < ActiveRecord::Migration
       t.string :current_access_token
       t.string :current_refresh_token
       t.datetime :current_expiration_date
+      t.boolean :use_google_shopping
 
       t.timestamps
     end

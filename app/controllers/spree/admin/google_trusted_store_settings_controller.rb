@@ -1,11 +1,11 @@
 module Spree
   module Admin
-    class GoogleTrustedStoreSettingsController < Spree::Admin::BaseController
+    class GoogleTrustedStoreSettingsController < Spree::Admin::ResourceController
       def show
         redirect_to action: :edit
       end
       def index
-        redirect_to action: :edit
+        redirect_to action: :edit, id: GoogleTrustedStoreSetting.instance
       end
 
       def edit

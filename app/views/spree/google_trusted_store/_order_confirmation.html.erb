@@ -4,6 +4,7 @@
   <!-- start order and merchant information -->
   <% order_fields.each do |field| %>
     <% next unless local_assigns[field] %>
+
     <span id="gts-o-<%= field.to_s.dasherize %>">
       <%= local_assigns[field] %>
     </span>

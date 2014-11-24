@@ -5,7 +5,7 @@ module Spree
         if params[:deauthenticate]
           settings = GoogleShoppingSetting.instance
           settings.current_access_token = nil
-          # settings.current_refresh_token = nil
+          settings.current_refresh_token = nil
           settings.current_expiration_date = nil
           settings.save!
           redirect_to spree.admin_google_shopping_settings_edit_path

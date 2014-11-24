@@ -5,21 +5,25 @@
   gts.push(["id", "<%= local_assigns[:id] || '000000' %>"]);
   gts.push(["locale", "<%= local_assigns[:locals] || 'en_US' %>"]);
 
-  // gts.push(["google_base_offer_id", "ITEM_GOOGLE_SHOPPING_ID"]);
-  // gts.push(["google_base_subaccount_id", "ITEM_GOOGLE_SHOPPING_ACCOUNT_ID"]);
-  // gts.push(["google_base_country", "ITEM_GOOGLE_SHOPPING_COUNTRY"]);
-  // gts.push(["google_base_language", "ITEM_GOOGLE_SHOPPING_LANGUAGE"]);
-
-  <% if Rails.env.production? %>
-    (function() {
-      var scheme = (("https:" == document.location.protocol) ? "https://" : "http://");
-      var gts = document.createElement("script");
-      gts.type = "text/javascript";
-      gts.async = true;
-      gts.src = scheme + "www.googlecommerce.com/trustedstores/gtmp_compiled.js";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(gts, s);
-    })();
+  <% if Spree::GoogleShoppingSetting.instance.use_google_shopping? && (product = valid_prominent_product) %>
+    gts.push(["google_base_offer_id", "<%= product.offer_id %>"]);
+    gts.push(["google_base_subaccount_id", "<%= Spree::GoogleShoppingSetting.instance.merchant_id %>"]);
+    gts.push(["google_base_country", "<%= product.target_country %>"]);
+    gts.push(["google_base_language", "<%= product.content_language %>"]);
   <% end %>
+
+  (function() {
+    var scheme = (("https:" == document.location.protocol) ? "https://" : "http://");
+    var gts = document.createElement("script");
+    gts.type = "text/javascript";
+    gts.async = true;
+    gts.src = scheme + "www.googlecommerce.com/trustedstores/gtmp_compiled.js";
+    var s = document.getElementsByTagName("script")[0];
+    <% if Rails.env.production? %>
+      s.parentNode.insertBefore(gts, s);
+    <% else %>
+      // s.parentNode.insertBefore(gts, s);
+    <% end %>
+  })();
 </script>
 <!-- END: Google Trusted Stores -->

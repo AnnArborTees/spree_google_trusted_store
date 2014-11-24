@@ -1,5 +1,7 @@
 module Spree
   module GoogleTrustedStoreHelper
+    include GoogleShoppingResponses
+
     def order_fields
       %i(id domain email country currency total discounts shipping_total 
         tax_total est_ship_date est_delivery_date has_preorder has_digital)
@@ -38,8 +40,28 @@ module Spree
             price:    item.price,
             quantity: item.quantity
           }
+            .merge(prodsearch_for(item))
         end
       }
+    end
+
+    def most_prominent_variant
+      local_assigns = try(:local_assigns) || {}
+
+      local_assigns[:most_prominent_variant] ||
+      local_assigns[:variant]                ||
+      @variant                               ||
+      @variants.try(:first)
+    end
+
+    def valid_prominent_product
+      variant = most_prominent_variant
+      return if variant.nil?
+      google_product = variant.google_product
+
+      response = google_product.google_get
+      return unless product?(response)
+      response.data
     end
 
     private
@@ -51,6 +73,26 @@ module Spree
 
     def digital_in?(order)
       false
+    end
+
+    def prodsearch_for(item)
+      settings = Spree::GoogleShoppingSetting.instance
+      return {} unless settings.use_google_shopping?
+
+      google_product = item.variant.google_product
+      response       = google_product.google_get
+      errors         = errors_from(response, false)
+
+      return {} unless errors.empty?
+      return {} unless product?(response)
+
+      product = response.data
+      {
+        prodsearch_id:       product.id,
+        prodsearch_store_id: settings.merchant_id,
+        prodsearch_country:  product.country,
+        prodsearch_language: product.language
+      }
     end
   end
 end

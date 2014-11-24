@@ -1,6 +1,8 @@
 module Spree
   module Admin
     class GoogleProductsController < Spree::Admin::ResourceController
+      include GoogleShoppingResponses
+
       def show
         redirect_to action: :edit
       end
@@ -21,7 +23,7 @@ module Spree
           update_flash :error, @google_product.errors.full_messages.join(', ')
           finish = -> { render 'edit', locals: locals }
         end
-        
+
         if params[:do_insert] && params[:do_insert].include?('Upload')
           google(:insert, 'upload to Google')
         elsif params[:do_delete]
@@ -65,15 +67,6 @@ module Spree
         return false if flash[key].nil?
         return false if flash[key].empty?
         return true
-      end
-
-      def errors_in?(response)
-        begin
-          !(response.data.error['errors'].nil? ||
-            response.data.error['errors'].empty?)
-        rescue NoMethodError
-          false
-        end
       end
 
       def locals

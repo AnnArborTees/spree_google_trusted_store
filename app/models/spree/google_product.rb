@@ -2,6 +2,8 @@ require 'google/api_client'
 
 module Spree
   class GoogleProduct < ActiveRecord::Base
+    include GoogleShoppingResponses
+
     G_ATTRIBUTES = [
       :offer_id, :title, :description, :google_product_category, :product_type,
       :link, :mobile_link, :image_link, :additional_image_link, :condition,
@@ -58,6 +60,7 @@ module Spree
       attributes_hash(true).to_json
     end
 
+    # TODO unused, I think
     def custom_attributes
       self.class.column_names - [
         :last_insertion_date, :last_insertion_errors,
@@ -128,36 +131,12 @@ module Spree
       return unless has_product_id?
 
       # TODO This should maybe not be hardcoded for
-      # channel/country/language?
+      # channel&country&language?
       "https://www.google.com/merchants/view?"\
       "merchantOfferId=#{variant.sku}&channel=0&country=US&language=en"
     end
 
     protected
-
-    def bad_credential_errors_from(response)
-      begin
-        response.data.error['errors'].find do |error|
-          error['reason']  == 'authError' &&
-          error['message'] == 'Invalid Credentials'
-        end
-      rescue NoMethodError
-      end
-    end
-
-    def errors_from(response)
-      begin
-        response.data.error['errors']
-      rescue NoMethodError
-        []
-      end
-        .to_json
-    end
-
-    def warnings_from(response)
-      response.data.try(:warnings)
-                   .try(:to_json)
-    end
 
     def refresh_if_unauthorized(after_method = nil)
       response = yield
@@ -193,14 +172,6 @@ module Spree
       self.product_id = nil
       self.last_insertion_warnings = nil
       self.last_insertion_errors = nil
-    end
-
-    def product?(response)
-      begin
-        response.data.is_a?(Google::APIClient::Schema::Content::V2::Product)
-      rescue NameError
-        false
-      end
     end
 
     def settings

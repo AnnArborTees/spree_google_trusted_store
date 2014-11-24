@@ -4,6 +4,7 @@
 
 <div class='row'>
   <%= link_to 'Back', spree.edit_admin_general_settings_path, class: 'button' %>
+  <%= link_to 'Google Trusted Store', spree.edit_admin_google_trusted_store_setting_path(Spree::GoogleTrustedStoreSetting.instance), class: 'button' %>
 </div>
 
 <div class='row'>
@@ -11,16 +12,24 @@
     <div class='form-group'>
       <div class='form-group'>
         <%= f.label :merchant_id, 'Google Merchant ID' %>
-        <%= f.text_field :merchant_id, autocomplete: 'off' %>
+        <%= f.text_field :merchant_id %>
       </div>
+
       <div class='form-group'>
         <%= f.label :oauth2_client_id, 'Google Developer Console OAuth client ID' %>
         <%= f.text_field :oauth2_client_id, autocomplete: 'off' %>
       </div>
+
       <div class='form-group'>
         <%= f.label :oauth2_client_secret, 'Google Developer Console OAuth client secret' %>
         <%= f.text_field :oauth2_client_secret, autocomplete: 'off' %>
       </div>
+
+      <div class='form-group'>
+        <%= f.label :use_google_shopping, 'Include Google Shopping information in Trusted Stores badge code' %>
+        <%= f.check_box :use_google_shopping, autocomplete: 'off' %>
+      </div>
+
       <div class="form-group">
         <%= f.submit 'Apply Changes' %>
       </div>

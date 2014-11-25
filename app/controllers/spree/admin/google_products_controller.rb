@@ -72,6 +72,8 @@ module Spree
 
           result = result &&
             google_product.update_attributes(permitted_params[:google_product])
+
+          variant.save
         end
 
         result

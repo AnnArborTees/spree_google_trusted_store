@@ -57,7 +57,8 @@ module Spree
     def valid_prominent_product
       variant = most_prominent_variant
       return if variant.nil?
-      google_product = variant.google_product
+      google_product = variant.google_product ||
+        Spree::GoogleProduct.create(variant_id: variant.id)
 
       response = google_product.google_get
       return unless product?(response)

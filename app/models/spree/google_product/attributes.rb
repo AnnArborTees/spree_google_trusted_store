@@ -64,13 +64,13 @@ module Spree
         end
       end
 
-      def value_of(variant, field)
+      def value_of(variant, field, context = nil)
         if attribute = db_fields[field]
           variant.google_product.send(attribute.name)
 
         elsif attribute = registered_attributes[field]
           if attribute.respond_to?(:call)
-            attribute.call(variant)
+            attribute.call(variant, context)
           else
             attribute
           end

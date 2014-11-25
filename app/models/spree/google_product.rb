@@ -43,10 +43,10 @@ module Spree
       )
     end
 
-    def attributes_hash(camelize_keys = false)
+    def attributes_hash(camelize_keys = false, context = nil)
       variant.reload
       G_ATTRIBUTES.map do |attribute|
-        value = Attributes.instance.value_of(variant, attribute)
+        value = Attributes.instance.value_of(variant, attribute, context)
         next if value.nil?
         key = camelize_keys ? camelize(attribute.to_s) : attribute
         next key, value
@@ -99,12 +99,12 @@ module Spree
       end
     end
 
-    def google_insert
+    def google_insert(context)
       refresh_if_unauthorized(:after_insert) do
         api_client.execute(
           api_method: google_shopping.products.insert,
           parameters: { 'merchantId' => settings.merchant_id },
-          body_object: attributes_hash(true)
+          body_object: attributes_hash(true, context)
         )
       end
     end

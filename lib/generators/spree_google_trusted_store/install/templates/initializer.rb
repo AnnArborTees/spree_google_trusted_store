@@ -1,8 +1,3 @@
-urls = Class.new do
-  extend Spree::Core::Engine.routes.url_helpers
-  extend Rails.application.routes.url_helpers
-end
-
 # These settings are how we control how product variant data is sent
 # to Google. It is recommended you look over all of these, and change
 # most of them to fit your specific needs.
@@ -35,9 +30,12 @@ Spree::GoogleProduct.configure do |config|
   end
   
   # This grabs the url to the product the variant represents for the
-  # link field.
-  config.define.link do |variant|
-    urls.try(:product_url, variant.product)
+  # link field. During an insert, the view/controller context is also
+  # passed to these methods in order to provide access to url helpers.
+  # It is an optional parameter, however, so make sure it's not nil
+  # before using it.
+  config.define.link do |variant, view|
+    view.try(:product_url, variant.product)
   end
 
   # NOTE: It is recommended you implement your own definition for

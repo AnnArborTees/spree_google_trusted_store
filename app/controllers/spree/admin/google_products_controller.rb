@@ -25,7 +25,7 @@ module Spree
         end
 
         if params[:do_insert] && params[:do_insert].include?('Upload')
-          google(:insert, 'upload to Google')
+          google(:insert, 'upload to Google', self)
         elsif params[:do_delete]
           google(:delete, 'remove from Google')
         end
@@ -35,8 +35,8 @@ module Spree
 
       private
 
-      def google(method, verb)
-        response = @google_product.send("google_#{method}")
+      def google(method, verb, *args)
+        response = @google_product.send("google_#{method}", *args)
 
         if errors_in?(response)
           update_flash :error, "Failed to #{verb}."

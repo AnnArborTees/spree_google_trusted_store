@@ -69,8 +69,15 @@ module Spree
           variant.google_product.send(attribute.name)
 
         elsif attribute = registered_attributes[field]
-          if attribute.respond_to?(:call)
-            attribute.call(variant, *[context].compact)
+          if attribute.respond_to?(:call) && attribute.respond_to?(:arity)
+            # This is convoluted and weird to make sure no argument
+            # errors are thrown when calling the block.
+
+            args = [variant, context]
+            arg_count =  attribute.arity if attribute.arity >= 0
+            arg_count = -attribute.arity if attribute.arity < 0
+
+            attribute.call(*args[0...arg_count])
           else
             attribute
           end

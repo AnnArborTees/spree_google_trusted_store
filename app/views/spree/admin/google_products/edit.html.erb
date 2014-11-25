@@ -67,11 +67,14 @@
     </div>
 
     <div class='gproduct-block'>
-      <% unless variant.is_master? && variant.product.variants.any? %>
-        <%= f.submit 'Update and Upload', name: 'do_insert' %>
-        <%= f.submit 'Remove from Google', name: 'do_delete', class: 'danger' %>
-      <% end %>
       <%= f.submit 'Update Locally', name: 'do_insert' %>
+
+      <% if variant.is_master? && variant.product.variants.any? %>
+        <%= f.submit 'Update all variants', name: 'all_variants' %>
+      <% else %>
+        <%= f.submit 'Update and Upload', name: 'do_insert' %>
+        <%= f.submit 'Remove from Google', name: 'do_delete', class: 'danger' if google_product.has_product_id? %>
+      <% end %>
     </div>
   <% end %>
 </div>

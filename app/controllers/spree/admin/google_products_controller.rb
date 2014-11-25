@@ -29,6 +29,15 @@ module Spree
         elsif params[:do_delete]
           google(:delete, 'remove from Google')
         end
+
+        if params[:all_variants]
+          if update_google_product_children!
+            update_flash :success, "Updated all variants"
+          else
+            update_flash :error, "Couldn't update all variants"
+            finish = -> { render 'edit', locals: locals }
+          end
+        end
         
         finish.call
       end
@@ -47,6 +56,25 @@ module Spree
 
       def update_google_product!
         @google_product.update_attributes permitted_params[:google_product]
+      end
+
+      def update_google_product_children!
+        # TODO maybe collect errors
+
+        master = @google_product.variant
+        return false unless master.is_master?
+
+        result = true
+
+        master.product.variants.each do |variant|
+          google_product = variant.google_product ||
+            Spree::GoogleProduct.new(variant_id: variant.id)
+
+          result = result &&
+            google_product.update_attributes(permitted_params[:google_product])
+        end
+
+        result
       end
 
       def update_flash(key, value)

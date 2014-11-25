@@ -180,7 +180,7 @@ module Spree
 
     def api_client
       @api_client ||= Google::APIClient.new(
-          application_name: settings.google_api_appplication_name || 'Spree',
+          application_name: settings.google_api_application_name || 'Spree',
           generate_authenticated_request: :oauth_2,
           auto_refresh_token: true
         ).tap(&settings.method(:set_api_client_info))

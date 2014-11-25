@@ -4,8 +4,8 @@ module Spree
       def update
         if params[:deauthenticate]
           settings = GoogleShoppingSetting.instance
-          settings.current_access_token = nil
-          settings.current_refresh_token = nil
+          settings.current_access_token    = nil
+          settings.current_refresh_token   = nil
           settings.current_expiration_date = nil
           settings.save!
           redirect_to spree.admin_google_shopping_settings_edit_path
@@ -23,6 +23,10 @@ module Spree
 
       def edit
         @google_shopping_setting = GoogleShoppingSetting.instance
+        url = URI request.original_url
+        @google_shopping_setting.update_attributes(
+          current_host: "#{url.scheme}://#{url.host}"
+        )
       end
 
       def oauth2

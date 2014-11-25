@@ -10,7 +10,8 @@ Spree::Core::Engine.routes.draw do
     
     get '/google_shopping_settings/edit', to: 'google_shopping_settings#edit'
     
-    get '/oauth2/callback', to: 'google_shopping_settings#oauth2'
+    # admin_oauth2_callback_url
+    get '/oauth2/callback', to: 'google_shopping_settings#oauth2', as: :oauth2_callback
   end
   get '/google_trusted_store/feed/shipment', to: 'google_feed#shipment', as: :google_trusted_store_shipment_feed
   get '/google_trusted_store/feed/cancelation', to: 'google_feed#cancelation', as: :google_trusted_store_cancelation_feed

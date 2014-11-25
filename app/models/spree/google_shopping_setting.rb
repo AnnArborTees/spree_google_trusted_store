@@ -6,11 +6,6 @@ module Spree
     include Spree::Core::Engine.routes.url_helpers
     default_url_options[:host] = 'http://test.com' # TODO CHANGE TO ACTUAL URL SOMEHOW
 
-    # TODO:
-    # This has a lot of maybe unnecessary logic in it; we can use google's
-    # Signet library or something to handle the bulk of the actual oauth
-    # stuff. This works for now however, so we'll roll with it until everything
-    # else is in gear.
     ENDPOINT = 'https://accounts.google.com'
     ENDPOINT_PATH = '/o/oauth2/token'
     AUTHENTICATION = 'https://accounts.google.com/o/oauth2/auth'
@@ -30,6 +25,11 @@ module Spree
       def scramble_state_token!
         self.state_token = SecureRandom.urlsafe_base64
       end
+    end
+
+    def admin_oauth2_callback_url
+      self.class.default_url_options[:host] = current_host || 'http://test.com'
+      super
     end
 
     def set_auth_info(auth)
@@ -73,7 +73,9 @@ module Spree
         google_error(data) if data['error']
 
         self.current_access_token  = data['access_token']
-        unless data['refresh_token'].nil?
+        if data['refresh_token'].nil?
+          logger.warn "No refresh token given in response"
+        else
           self.current_refresh_token = data['refresh_token']
         end
         self.current_expiration_date = data['expires_in'].seconds.from_now

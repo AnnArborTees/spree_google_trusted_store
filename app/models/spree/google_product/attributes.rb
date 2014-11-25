@@ -70,7 +70,7 @@ module Spree
 
         elsif attribute = registered_attributes[field]
           if attribute.respond_to?(:call)
-            attribute.call(variant, context)
+            attribute.call(variant, *[context].compact)
           else
             attribute
           end

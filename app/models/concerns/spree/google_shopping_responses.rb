@@ -1,12 +1,13 @@
 module Spree
   module GoogleShoppingResponses
     def errors_from(response, json = true)
-      begin
+      errors = begin
         response.data.error['errors']
       rescue NoMethodError
         []
       end
-        .send(json ? :to_json : :tap)
+
+      json ? errors.to_json : errors
     end
 
     def warnings_from(response)

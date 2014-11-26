@@ -49,7 +49,7 @@ Spree::GoogleProduct.configure do |config|
     variant.images[1..-1].map(&:url).to_json if variant.images[1..-1]
   end
 
-  config.define.condition.as_db_column do |f|
+  config.define.condition.as_db_column(default: 'new') do |f|
     f.select :condition, %w(new used refurbished)
   end
   config.define.adult.as_db_column { |f| f.check_box(:adult) }

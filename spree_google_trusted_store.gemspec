@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
   s.requirements << 'none'
 
   s.add_dependency 'spree_core', '~> 2.2.1'
+  s.add_dependency 'spree_backend', '~> 2.2.1'
   s.add_dependency 'business_time'
   s.add_dependency 'google-api-client'
 

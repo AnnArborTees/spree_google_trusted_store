@@ -37,10 +37,16 @@ describe Spree::GoogleProduct::Attributes, shopping_spec: true, story_161: true 
       pending: 'maybe not...'
   end
 
-  describe '#register_db_field' do
+  describe '#register_db_field', db: true do
     it 'stores the value in #db_fields' do
-      subject.register_db_field(:title, :title)
-      expect(subject.db_fields[:title]).to eq :title
+      view_proc = proc { 'hi' }
+      subject.register_db_field(:title, :title_field, { default: 'what up' }, &view_proc)
+      db_field = subject.db_fields[:title]
+
+      expect(db_field.name).to eq :title
+      expect(db_field.db_name).to eq :title_field
+      expect(db_field.render_block).to eq view_proc
+      expect(db_field.default_value).to eq 'what up'
     end
   end
 
@@ -86,18 +92,25 @@ describe Spree::GoogleProduct::Attributes, shopping_spec: true, story_161: true 
       subject.define.title { 'proc' }
     end
 
-    describe '#as_db_column' do
+    describe '#as_db_column', db: true do
       context 'with no argument' do
         it 'calls register_db_field on the field called' do
-          expect(subject).to receive(:register_db_field).with(:title, nil)
+          expect(subject).to receive(:register_db_field).with(:title, nil, {})
           subject.define.title.as_db_column
         end
       end
 
       context 'with a name argument' do
         it 'calls register_db_field on the field called with the given argument' do
-          expect(subject).to receive(:register_db_field).with(:title, :title_field)
+          expect(subject).to receive(:register_db_field).with(:title, :title_field, {})
           subject.define.title.as_db_column(:title_field)
+        end
+      end
+
+      context 'with an options hash' do
+        it 'calls register_db_field with the :default option' do
+          expect(subject).to receive(:register_db_field).with(:title, nil, { default: 'test_value' })
+          subject.define.title.as_db_column(default: 'test_value')
         end
       end
     end

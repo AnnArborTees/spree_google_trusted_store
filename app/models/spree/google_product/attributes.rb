@@ -18,16 +18,23 @@ module Spree
                 @name = name
               end
 
-              def as_db_column(field = nil, &block)
+              def as_db_column(field_or_options = nil, options = {}, &block)
+                if field_or_options.is_a?(Hash)
+                  options = field_or_options
+                  field = nil
+                else
+                  field = field_or_options
+                end
+
                 @attributes.registered_attributes.delete(@name)
-                @attributes.register_db_field(@name, field, &block)
+                @attributes.register_db_field(@name, field, options, &block)
               end
             end.new(@attributes, attribute)
           end
         end
       end
 
-      DbField = Struct.new(:name, :db_name, :render_block)
+      DbField = Struct.new(:name, :db_name, :render_block, :default_value)
 
       def self.instance
         @instance ||= new
@@ -66,12 +73,13 @@ module Spree
 
       def value_of(variant, field, context = nil)
         if attribute = db_fields[field]
-          variant.google_product.send(attribute.name)
+          variant.google_product.send(attribute.db_name) ||
+            attribute.default_value
 
         elsif attribute = registered_attributes[field]
           if attribute.respond_to?(:call) && attribute.respond_to?(:arity)
             # This is convoluted and weird to make sure no argument
-            # errors are thrown when calling the block.
+            # errors are thrown when executing the proc.
 
             args = [variant, context]
             arg_count =  attribute.arity if attribute.arity >= 0
@@ -115,9 +123,10 @@ module Spree
         registered_attributes[name] = block_given? ? block : value
       end
 
-      def register_db_field(name, field = nil, &block)
+      def register_db_field(name, field = nil, options = {}, &block)
         db_fields[name] = DbField.new(name, field || name,
-                                      block || default_db_field_block)
+                                      block || default_db_field_block,
+                                      options[:default])
       end
     end
   end

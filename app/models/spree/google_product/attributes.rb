@@ -113,7 +113,7 @@ module Spree
       def default_db_field_block
         # The second argument will be a DbField object.
         @default_db_field_block ||= proc do |f, field|
-          f.text_field(field.db_field)
+          f.text_field(field.db_name)
         end
       end
 

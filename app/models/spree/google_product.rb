@@ -14,7 +14,7 @@ module Spree
       :brand, :gtin, :mpn, :identifier_exists, :gender, :age_group,
       :size_type, :size_system,
 
-      :color, :size,
+      :color, :size, :sizes,
 
       :material, :pattern, :item_group_id,
 

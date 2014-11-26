@@ -79,7 +79,7 @@ module Spree
       data = JSON.parse send(func)
       data.map do |datum|
         {
-          reason: datum['reason'].underscore.humanize,
+          reason: datum['reason'].try(:underscore).try(:humanize) || '---',
           message: datum['message']
         }
       end

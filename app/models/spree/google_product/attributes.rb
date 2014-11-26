@@ -99,15 +99,21 @@ module Spree
       def render_db_field(context, form_builder, field)
         db_field = db_fields.values.find { |f| f.db_name == field.to_sym }
         block    = db_field.render_block || default_db_field_block
+        object   = form_builder.object
 
-        context.instance_exec(form_builder, field, &block)
+        if object.send(db_field.db_name).nil?
+          object.send("#{db_field.db_name}=", db_field.default_value)
+        end
+
+        context.instance_exec(form_builder, db_field, &block)
       end
 
       attr_writer :default_db_field_block
 
       def default_db_field_block
-        @default_db_field_block || proc do |f, field_name|
-          f.text_field(field_name)
+        # The second argument will be a DbField object.
+        @default_db_field_block ||= proc do |f, field|
+          f.text_field(field.db_field)
         end
       end
 

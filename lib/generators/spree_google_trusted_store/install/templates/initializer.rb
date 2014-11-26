@@ -14,7 +14,7 @@ Spree::GoogleProduct.configure do |config|
   # User added fields will be automatically added to the admin views
   # for Google Products.
   # 
-  # Not passing a block will default to { |f, n| f.text_field(n) }
+  # Not passing a block will default to { |f, field| f.text_field(field.db_name) }
   config.define.google_product_category.as_db_column do |f|
     categories = Net::HTTP.get(
       URI 'http://www.google.com/basepages/producttype/taxonomy.en-US.txt'

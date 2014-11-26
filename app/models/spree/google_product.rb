@@ -99,7 +99,7 @@ module Spree
       end
     end
 
-    def google_insert(context)
+    def google_insert(context = nil)
       refresh_if_unauthorized(:after_insert) do
         api_client.execute(
           api_method: google_shopping.products.insert,

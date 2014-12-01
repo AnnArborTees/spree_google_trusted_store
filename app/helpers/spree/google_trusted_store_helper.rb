@@ -81,6 +81,8 @@ module Spree
       return {} unless settings.use_google_shopping?
 
       google_product = item.variant.google_product
+      return {} if google_product.nil?
+
       response       = google_product.google_get
       errors         = errors_from(response, false)
 
@@ -91,8 +93,8 @@ module Spree
       {
         prodsearch_id:       product.id,
         prodsearch_store_id: settings.merchant_id,
-        prodsearch_country:  product.country,
-        prodsearch_language: product.language
+        prodsearch_country:  product['country'] || 'US',
+        prodsearch_language: product['language'] || 'en'
       }
     end
   end

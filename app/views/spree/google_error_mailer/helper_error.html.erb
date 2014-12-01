@@ -1,0 +1,18 @@
+<p>
+  Something went wrong when executing a Google Merchant related view helper!
+</p>
+<p>
+  <%= @error.inspect %> <br />
+  ================================================================ <br />
+  <br />
+  <% @error.backtrace.each do |line| %>
+    <%= line %>
+    <br />
+  <% end %>
+  ================================================================
+</p>
+<p>
+  If you want these message to not be sent, either fix the error or remove the
+  method call at spree_google_trusted_store/app/helpers/spree_google_trusted_store_helper.rb#safely
+</p>
+

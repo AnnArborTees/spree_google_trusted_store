@@ -6,24 +6,22 @@ describe Spree::GoogleProduct::Attributes, shopping_spec: true, story_161: true 
   describe '#register_attribute' do
     describe '#value_of' do
       it 'can remember and assign a block' do
-        block = proc { 'new_value' }
-        variant = double('variant', title: 'test_title')
+        block = proc { |var| 'new_value: ' + var.sku }
+        variant = double('variant', sku: 'testsku')
         expect(block).to receive(:call).with(variant).and_call_original
 
         subject.register_attribute(:title, &block)
         expect(subject.value_of(variant, :title))
-          .to eq 'new_value'
+          .to eq 'new_value: testsku'
       end
 
-      it 'can remember and value_of a constant value' do
+      it 'can remember and assign a constant value' do
         variant = double('variant', title: 'test_title')
 
         subject.register_attribute(:title, 'const title')
         expect(subject.value_of(variant, :title))
           .to eq 'const title'
       end
-
-      it 'issues a warning when a required field failed to be assigned'
     end
 
     it 'remembers all registered attributes in #registered_attributes' do
@@ -50,7 +48,7 @@ describe Spree::GoogleProduct::Attributes, shopping_spec: true, story_161: true 
     end
   end
 
-  describe '#check_db_fields' do
+  describe '#check_db_fields', pending: 'this method is not actually needed/used' do
     context 'when #db_fields contains fields that are not in the model' do
       it 'issues a warning' do
         allow(subject).to receive(:db_fields).and_return [:one, :two]

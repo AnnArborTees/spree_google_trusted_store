@@ -19,33 +19,6 @@ describe Spree::GoogleProduct, shopping_spec: true, story_161: true do
   let(:variant) { create :variant, google_product: Spree::GoogleProduct.new }
   let(:google_product) { variant.google_product }
 
-  describe 'G_ATTRIBUTES' do
-    it 'all attributes accepted by google products' do
-      expect(Spree::GoogleProduct::G_ATTRIBUTES).to eq [
-        :offer_id, :title, :description, :google_product_category, :product_type,
-        :link, :mobile_link, :image_link, :additional_image_link, :condition,
-
-        :availability, :availability_date, :price, :sale_price,
-        :sale_price_effective_date,
-
-        :brand, :gtin, :mpn, :identifier_exists, :gender, :age_group,
-        :size_type, :size_system,
-
-        :color, :size,
-
-        :material, :pattern, :item_group_id,
-
-        :tax, :shipping, :shipping_weight, :shipping_label,
-
-        :multipack, :is_bundle,
-
-        :adult, :adwords_grouping, :adwords_labels, :adwords_redirect,
-
-        :excluded_destination, :expiration_date
-      ]
-    end
-  end
-
   describe '.configure' do
     it 'accepts a block, to which it passes a config object' do
       Spree::GoogleProduct.configure do |config|

@@ -5,23 +5,18 @@ describe 'spree/google_trusted_store/_badge.html.erb', badge_spec: true, story_1
     render partial: 'spree/google_trusted_store/badge', locals: locals
   end
 
-  it 'displays BEGIN and END comments for google trusted stores' do
-    render!
-    expect(rendered).to start_with '<!-- BEGIN: Google Trusted Stores -->'
-    expect(rendered).to end_with "<!-- END: Google Trusted Stores -->\n"
-  end
-
   it 'initializes a "gts"' do
     render!
     expect(rendered).to include 'var gts = gts || [];'
   end
 
   it 'only inserts the query js in production' do
-    render!
-    expect(rendered).to_not include 'gts.src = scheme + "www.googlecommerce.com/trustedstores/gtmp_compiled.js";'
+    rendered = render!
+    expect(rendered).to include '// s.parentNode.insertBefore(gts, s);'
     expect(Rails.env).to receive(:production?).and_return true
-    render!
-    expect(rendered).to include 'gts.src = scheme + "www.googlecommerce.com/trustedstores/gtmp_compiled.js";'
+    rendered = render!
+    expect(rendered).to_not include '// s.parentNode.insertBefore(gts, s);'
+    expect(rendered).to include 's.parentNode.insertBefore(gts, s);'
   end
 
   context 'given an id' do

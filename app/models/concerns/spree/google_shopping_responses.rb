@@ -11,6 +11,8 @@ module Spree
     end
 
     def warnings_from(response)
+      return if response.nil?
+
       response.data.try(:warnings)
                    .try(:to_json)
     end

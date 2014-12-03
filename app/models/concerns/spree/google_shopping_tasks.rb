@@ -44,19 +44,7 @@ module Spree
       all_errors    = {}
       all_successes = []
 
-      # This is conforming to my 'link' attribute hack, which requires
-      # some kind of domain obviously. Check out the google_shopping.rb
-      # initializer for more info.
-      base_url = options[:base_url] || Spree::Store
-        .default.first.domains.split(/\s/).first
-      Thread.current[:response] = Struct.new(:original_uri).new(base_url)
-
-      product = Spree::Product.where(id: id_or_sku).first ||
-        Spree::Product
-        .includes(:master)
-        .where(spree_variants: {is_master: true, sku: id_or_sku})
-        .first
-
+      product = product_with_id_or_sku(id_or_sku)
       if product.nil?
         puts "Couldn't find a product with id or sku #{id_or_sku}"
         return
@@ -117,7 +105,40 @@ module Spree
       upload_google_product(google_product, options, &block)
     end
 
-    def upload_all_to_google(options = {})
+    def remove_from_google(id_or_sku)
+      product = product_with_id_or_sku(id_or_sku)
+      if product.nil?
+        STDOUT.puts "Couldn't find a product with id or sku #{id_or_sku}"
+        return
+      end
+
+      if product.variants.any?
+        product.variants.each do |variant|
+          google_product = variant.google_product
+          next if google_product.nil?
+
+          begin
+            google_product.google_delete
+            STDOUT.puts "Deleted google entry for #{variant.sku}"
+          rescue StandardError => e
+            STDOUT.puts "Error while deleting #{variant.sku}: #{e.message}"
+          end
+        end
+
+      else
+        master_product = product.master.google_product
+        return if master_product.nil?
+
+        begin
+          master_product.google_delete
+          STDOUT.puts "Deleted google entry for #{master_product}"
+        rescue StandardError => e
+          STDOUT.puts "Error while deleting #{product.master.sku}: #{e.message}"
+        end
+      end
+   end
+
+   def upload_all_to_google(options = {})
       error_handler   = options[:on_error]   || print_errors
       success_handler = options[:on_success] || print_success
 
@@ -165,5 +186,15 @@ module Spree
       error_handler.call(all_errors)
       success_handler.call(all_successes)
     end
+
+    private
+
+    def product_with_id_or_sku(id_or_sku)
+      Spree::Product.where(id: id_or_sku).first ||
+        Spree::Product
+          .includes(:master)
+          .where(spree_variants: {is_master: true, sku: id_or_sku})
+          .first
+   end
   end
 end

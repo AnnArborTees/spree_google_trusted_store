@@ -11,6 +11,7 @@ Spree::Variant.class_eval do
   end
 
   def delete_google_product
+    return unless use_google_shopping?
     return if google_product.nil?
     return unless google_product.has_product_id?
 
@@ -19,6 +20,7 @@ Spree::Variant.class_eval do
   end
 
   def make_sure_master_doesnt_have_google_product
+    return unless use_google_shopping?
     return unless product_id
     return if is_master?
 
@@ -28,6 +30,7 @@ Spree::Variant.class_eval do
   end
 
   def assign_google_product_attributes_from_masters
+    return unless use_google_shopping?
     return unless product_id?
     return if is_master?
 
@@ -47,5 +50,9 @@ Spree::Variant.class_eval do
     google_product &&
     google_product.automatically_update? &&
     (is_master? ? product.variants.empty? : true)
+  end
+
+  def use_google_shopping?
+    Spree::GoogleShoppingSetting.instance.use_google_shopping?
   end
 end

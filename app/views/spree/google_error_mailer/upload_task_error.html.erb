@@ -1,0 +1,26 @@
+<p>
+  There were some errors while uploading product info to Google Shopping!
+</p>
+<% @variant_errors.each do |variant, errors| %>
+  ============== SKU: <%= variant.sku %> ================
+  <br />
+  <table>
+    <thead>
+      <tr>
+        <th>Reason</th>
+        <th>Message</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% errors.each do |error| %>
+        <tr>
+          <td align='center'><%= error[:reason] %></td>
+          <td align='center'><%= error[:message] %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <br />
+<% end %>
+

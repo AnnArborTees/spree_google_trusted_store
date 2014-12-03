@@ -64,42 +64,103 @@ module Spree
 
       product.master.google_product ||= Spree::GoogleProduct.create
 
-      t_shirt_category = 
-        'Apparel & Accessories > Clothing > Shirts & Tops > T-Shirts'
-
       master_product = product.master.google_product
       master_product.google_product_category = t_shirt_category
       master_product.save!
 
       if product.variants.any?
         product.variants.each do |variant|
-          google_product = variant.google_product ||
-            Spree::GoogleProduct.new(variant_id: variant.id)
-
-          google_product.google_product_category = t_shirt_category
-          google_product.automatically_update = true
-          google_product.save!
-
-          response = google_product.google_insert
-          errors = google_utils.errors_from(response)
-          if errors
-            # error_handler.call(errors, variant)
-            all_errors[variant] = errors
-          else
-            # success_handler.call(variant)
-            all_successes << variant
+          upload_variant(variant) do |errors|
+            if errors
+              all_errors[variant] = errors
+            else
+              all_successes << variant
+            end
           end
-          # puts "==================================================="
         end
+
       else
-        response = master_product.google_insert
-        errors   = google_utils.errors_from(response)
-        if errors
-          all_errors[master_product.variant] = errors
-        else
-          all_successes << master_product.variant
+
+        upload_google_product(master_product) do |errors|
+          if errors
+            all_errors[master_product.variant] = errors
+          else
+            all_successes << master_product.variant
+          end
         end
       end
+
+      error_handler.call(all_errors)
+      success_handler.call(all_successes)
+    end
+
+    def t_shirt_category
+      'Apparel & Accessories > Clothing > Shirts & Tops > T-Shirts'
+    end
+
+    def upload_google_product(google_product, options = {}, &block)
+      category = options[:category] || t_shirt_category
+
+      google_product.google_product_category = category
+      google_product.automatically_update = true
+      google_product.save!
+
+      response = google_product.google_insert
+      errors = google_utils.errors_from(response)
+      yield errors
+    end
+
+    def upload_variant(variant, options = {}, &block)
+      google_product = variant.google_product ||
+        Spree::GoogleProduct.new(variant_id: variant.id)
+
+      upload_google_product(google_product, options, &block)
+    end
+
+    def upload_all_to_google(options = {})
+      error_handler   = options[:on_error]   || print_errors
+      success_handler = options[:on_success] || print_success
+
+      all_errors    = {}
+      all_successes = []
+
+      t_shirt_category = Spree::ShippingCategory.where(name: 'T-shirt').first
+      if t_shirt_category.nil?
+        STDOUT.puts "Couldn't find T-shirt shipping category!"
+        return
+      end
+
+      Spree::Variant
+        .includes(:google_product)
+        .where('spree_google_products.id is null')
+        .references('spree_google_products')
+        .includes(:product)
+        .where(products: { shipping_category_id: t_shirt_category.id })
+        .find_each do |variant|
+          if variant.is_master?
+            next unless variant.product.variants.empty?
+          end
+
+          upload_variant(variant) do |errors|
+            if errors
+              all_errors[variant] = errors
+            else
+              all_successes << variant
+            end
+          end
+        end
+
+      Spree::GoogleProduct
+        .where(last_insertion_date: nil)
+        .find_each do |google_product|
+          upload_google_product(google_product) do |errors|
+            if errors
+              all_errors[google_product.variant] = errors
+            else
+              all_successes << google_product.variant
+            end
+          end
+        end
 
       error_handler.call(all_errors)
       success_handler.call(all_successes)

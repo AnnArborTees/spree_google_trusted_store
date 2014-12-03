@@ -2,12 +2,11 @@ require 'spec_helper'
 
 describe 'Spree::GoogleShoppingTasks' do
   subject { Class.new { extend Spree::GoogleShoppingTasks } }
+  let!(:product) { create :product }
+  let!(:variant1) { create :variant, product: product }
+  let!(:variant2) { create :variant, product: product }
 
   describe '#upload_to_google' do
-    let!(:product) { create :product }
-    let!(:variant1) { create :variant, product: product }
-    let!(:variant2) { create :variant, product: product }
-
     it 'calls google_insert on each variant' do
       google_product = double('GoogleProduct')
       allow(google_product).to receive(:google_product_category=)
@@ -35,4 +34,12 @@ describe 'Spree::GoogleShoppingTasks' do
       )
     end
   end
+
+  # describe '#upload_all_to_google', testing: true do
+    # it 'will work at some point (not an actual test case)' do
+      # # variant1.google_product = Spree::GoogleProduct.new
+# 
+      # subject.upload_all_to_google()
+    # end
+  # end
 end

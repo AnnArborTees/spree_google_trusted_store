@@ -165,7 +165,7 @@ module Spree
           return
         end
 
-        STDOUT.puts "Processing #{response.data.size} google product entires"
+        STDOUT.puts "Processing #{response.data.resources.size} google product entires"
 
         dangling_entries = response.data.resources.reject do |entry|
           Spree::Variant.where(
@@ -224,7 +224,7 @@ module Spree
         .where('spree_google_products.id is null')
         .references('spree_google_products')
         .includes(:product)
-        .where(products: { shipping_category_id: t_shirt_category.id })
+        .where(spree_products: { shipping_category_id: t_shirt_category.id })
         .find_each do |variant|
           if variant.is_master?
             next unless variant.product.variants.empty?

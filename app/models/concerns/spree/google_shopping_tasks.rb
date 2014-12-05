@@ -105,10 +105,6 @@ module Spree
       upload_google_product(google_product, options, &block)
     end
 
-    # TODO turns out this is only slightly useful; ideally, we query
-    # Google Shopping via API and delete all products with an item
-    # group id matching the product id, which would eliminate all
-    # dangling Google Shopping entries in the case of a sku change.
     def remove_from_google(id_or_sku)
       product = product_with_id_or_sku(id_or_sku)
       if product.nil?
@@ -142,16 +138,7 @@ module Spree
       end
     end
 
-    # This seeks to resolve the above TODO.
-    def remove_dangling(id_or_sku)
-      product = product_with_id_or_sku(id_or_sku)
-      if product.nil?
-        STDOUT.puts "Couldn't find a product with id or sku #{id_or_sku}"
-        return
-      end
-
-      variant_skus = product.variants_including_master.map(&:sku)
-
+    def remove_dangling
       api_client      = google_utils.api_client
       google_shopping = google_utils.google_shopping
       settings        = google_utils.settings
@@ -178,10 +165,17 @@ module Spree
           return
         end
 
-        dangling_entries = response.data.resources.select do |entry|
-          entry.item_group_id.to_s == product.id.to_s &&
-          !variant_skus.include?(entry.offer_id)
+        STDOUT.puts "Processing #{response.data.size} google product entires"
+
+        dangling_entries = response.data.resources.reject do |entry|
+          Spree::Variant.where(
+            product_id: entry.item_group_id,
+            sku:        entry.offer_id
+          )
+            .exists?
         end
+
+        STDOUT.puts "Found #{dangling_entries.size} dangling"
 
         unless dangling_entries.empty?
           batch_entries += dangling_entries.map.with_index do |entry, index|
@@ -195,8 +189,12 @@ module Spree
         end
 
         next_page_token = response.data.next_page_token
+        STDOUT.puts "Next page token: #{next_page_token}"
+        STDOUT.puts "==================================================="
         break if next_page_token.nil? || next_page_token.empty?
       end
+
+      STDOUT.puts "Performing batch response..."
 
       batch_response = google_utils.refresh_if_unauthorized do
         api_client.execute(
@@ -205,7 +203,7 @@ module Spree
         )
       end
 
-      # TODO Handle errors. Not entirely sure what could go wrong here.
+      STDOUT.puts "Done. Remember there is no error checking right now."
     end
 
     def upload_all_to_google(options = {})

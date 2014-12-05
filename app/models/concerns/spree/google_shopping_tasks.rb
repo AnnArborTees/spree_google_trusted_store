@@ -206,7 +206,7 @@ module Spree
 
       batch_response.data.entries.each do |entry|
         # No idea which one of these is correct.
-        errors = entry[:errors].try(:[], 'errors') || entry.error['errors']
+        errors = entry[:errors].try(:[], 'errors') || entry.[:error].try(:[], 'errors')
         if errors
           errors.each do |error|
             STDOUT.puts %w(

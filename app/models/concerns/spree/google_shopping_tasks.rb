@@ -152,6 +152,7 @@ module Spree
             parameters: {
               'merchantId' => settings.merchant_id,
               'fields'     => 'nextPageToken,resources(id,offerId,itemGroupId)',
+              'maxResults' => 50
             }
               .merge(
                 next_page_token ? { 'pageToken' => next_page_token } : {}
@@ -180,7 +181,7 @@ module Spree
         unless dangling_entries.empty?
           batch_entries += dangling_entries.map.with_index do |entry, index|
             {
-              'batchId'    => index,
+              'batchId'    => index + batch_entries.size,
               'merchantId' => settings.merchant_id,
               'method'     => 'delete',
               'productId'  => entry.id
@@ -192,9 +193,6 @@ module Spree
         STDOUT.puts "Next page token: #{next_page_token}"
         STDOUT.puts "==================================================="
         break if next_page_token.nil? || next_page_token.empty?
-
-        # TODO USE THIS IS FOR TESTING ONLY
-        # break if batch_entries.size >= 10
       end
 
       STDOUT.puts "Performing batch response to remove #{batch_entries.size} dangling products..."
@@ -207,7 +205,8 @@ module Spree
       end
 
       batch_response.data.entries.each do |entry|
-        errors = entry.error['errors']
+        # No idea which one of these is correct.
+        errors = entry[:errors].try(:[], 'errors') || entry.error['errors']
         if errors
           errors.each do |error|
             STDOUT.puts %w(
@@ -220,7 +219,7 @@ module Spree
         end
       end
 
-      STDOUT.puts "Done. No error messages means all good."
+      STDOUT.puts "Done."
     end
 
     def upload_all_to_google(options = {})

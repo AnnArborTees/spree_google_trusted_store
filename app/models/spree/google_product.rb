@@ -88,7 +88,7 @@ module Spree
     def google_get
       return unless has_product_id?
 
-      refresh_if_unauthorized do
+      refresh_if_unauthorized(:assign_product_id) do
         api_client.execute(
           api_method: google_shopping.products.get,
           parameters: {
@@ -138,34 +138,11 @@ module Spree
 
     protected
 
-    def refresh_if_unauthorized(after_method = nil)
-      response = yield
-      auth_error = bad_credential_errors_from(response)
-
-      if auth_error
-        if api_client.authorization.refresh_token
-          if settings.update_from(api_client.authorization.refresh!)
-            logger.info 'Got bad authorization from Google. Refreshing token...'
-            response = yield
-            if bad_credential_errors_from(response)
-              logger.warn 'Still no dice on authentication!'
-            end
-          end
-        else
-          logger.warn("No refresh token; OAuth authentication required.")
-        end
-      end
-
-      send(after_method, response) if after_method
-      self.product_id = response.data.id if product?(response)
-      save!
-      response
-    end
-
     def after_insert(response)
       self.last_insertion_errors   = errors_from(response)
       self.last_insertion_warnings = warnings_from(response)
       self.last_insertion_date     = Time.now
+      assign_product_id(response)
     end
 
     def after_delete(response)
@@ -174,20 +151,9 @@ module Spree
       self.last_insertion_errors = nil
     end
 
-    def settings
-      @gts_settings ||= GoogleShoppingSetting.instance
-    end
-
-    def api_client
-      @api_client ||= Google::APIClient.new(
-          application_name: settings.google_api_application_name || 'Spree',
-          generate_authenticated_request: :oauth_2,
-          auto_refresh_token: true
-        ).tap(&settings.method(:set_api_client_info))
-    end
-
-    def google_shopping
-      @google_shopping ||= api_client.discovered_api('content', 'v2')
+    def assign_product_id(response)
+      self.product_id = response.data.id if product?(response)
+      save!
     end
 
     def camelize(key)

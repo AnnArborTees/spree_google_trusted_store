@@ -34,7 +34,7 @@ module Spree
     end
 
     def google_utils
-      Class.new { extend Spree::GoogleShoppingResponses }
+      @_google_utils ||= Class.new { extend Spree::GoogleShoppingResponses }
     end
 
     def upload_to_google(id_or_sku, options = {})
@@ -105,6 +105,10 @@ module Spree
       upload_google_product(google_product, options, &block)
     end
 
+    # TODO turns out this is only slightly useful; ideally, we query
+    # Google Shopping via API and delete all products with an item
+    # group id matching the product id, which would eliminate all
+    # dangling Google Shopping entries in the case of a sku change.
     def remove_from_google(id_or_sku)
       product = product_with_id_or_sku(id_or_sku)
       if product.nil?
@@ -136,9 +140,75 @@ module Spree
           STDOUT.puts "Error while deleting #{product.master.sku}: #{e.message}"
         end
       end
-   end
+    end
 
-   def upload_all_to_google(options = {})
+    # This seeks to resolve the above TODO.
+    def remove_dangling(id_or_sku)
+      product = product_with_id_or_sku(id_or_sku)
+      if product.nil?
+        STDOUT.puts "Couldn't find a product with id or sku #{id_or_sku}"
+        return
+      end
+
+      variant_skus = product.variants_including_master.map(&:sku)
+
+      api_client      = google_utils.api_client
+      google_shopping = google_utils.google_shopping
+      settings        = google_utils.settings
+
+      next_page_token = nil
+      batch_entries   = []
+      loop do
+        response = google_utils.refresh_if_unauthorized do
+          api_client.execute(
+            api_method: google_shopping.products.list,
+            parameters: {
+              'merchantId' => settings.merchant_id,
+              'fields'     => 'nextPageToken,resources(id,offerId,itemGroupId)',
+            }
+              .merge(
+                next_page_token ? { 'pageToken' => next_page_token } : {}
+              )
+          )
+        end
+
+        unless google_utils.product_list?(response)
+          STDOUT.puts "Something went wrong when querying Google!"
+          STDOUT.puts "Hopefully this isn't just response an empty response."
+          return
+        end
+
+        dangling_entries = response.data.resources.select do |entry|
+          entry.item_group_id.to_s == product.id.to_s &&
+          !variant_skus.include?(entry.offer_id)
+        end
+
+        unless dangling_entries.empty?
+          batch_entries += dangling_entries.map.with_index do |entry, index|
+            {
+              'batchId'    => index,
+              'merchantId' => settings.merchant_id,
+              'method'     => 'delete',
+              'productId'  => entry.id
+            }
+          end
+        end
+
+        next_page_token = response.data.next_page_token
+        break if next_page_token.nil? || next_page_token.empty?
+      end
+
+      batch_response = google_utils.refresh_if_unauthorized do
+        api_client.execute(
+          api_method: google_shopping.products.custombatch,
+          body_object: { 'entries' => batch_entries }
+        )
+      end
+
+      # TODO Handle errors. Not entirely sure what could go wrong here.
+    end
+
+    def upload_all_to_google(options = {})
       error_handler   = options[:on_error]   || print_errors
       success_handler = options[:on_success] || print_success
 

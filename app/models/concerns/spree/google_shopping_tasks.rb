@@ -192,9 +192,12 @@ module Spree
         STDOUT.puts "Next page token: #{next_page_token}"
         STDOUT.puts "==================================================="
         break if next_page_token.nil? || next_page_token.empty?
+
+        # TODO USE THIS IS FOR TESTING ONLY
+        # break if batch_entries.size >= 10
       end
 
-      STDOUT.puts "Performing batch response..."
+      STDOUT.puts "Performing batch response to remove #{batch_entries.size} dangling products..."
 
       batch_response = google_utils.refresh_if_unauthorized do
         api_client.execute(
@@ -203,7 +206,21 @@ module Spree
         )
       end
 
-      STDOUT.puts "Done. Remember there is no error checking right now."
+      batch_response.data.entries.each do |entry|
+        errors = entry.error['errors']
+        if errors
+          errors.each do |error|
+            STDOUT.puts %w(
+              ERROR
+              reason: #{error['reason']}
+              message: #{error['message']}
+            )
+            STDOUT.puts "======================================="
+          end
+        end
+      end
+
+      STDOUT.puts "Done. No error messages means all good."
     end
 
     def upload_all_to_google(options = {})

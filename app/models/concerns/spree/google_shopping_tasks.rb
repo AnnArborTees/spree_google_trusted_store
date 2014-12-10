@@ -34,7 +34,22 @@ module Spree
     end
 
     def google_utils
-      @_google_utils ||= Class.new { extend Spree::GoogleShoppingResponses }
+      @_google_utils ||= Class.new do
+        include Spree::GoogleShoppingResponses
+        attr_accessor :logger
+        def initialize(base)
+          if base.respond_to?(:logger)
+            self.logger = base.logger
+          else
+            self.logger = Class.new do
+              def self.method_missing(name, *args, &block)
+                STDOUT.puts args.first
+              end
+            end
+          end
+        end
+      end
+        .new(self)
     end
 
     def upload_to_google(id_or_sku, options = {})
@@ -245,7 +260,7 @@ module Spree
         response.data.entries.each do |entry|
           # No idea which one of these is correct.
           errors = entry[:errors].try(:[], 'errors') || entry[:error].try(:[], 'errors')
-          all_errors += errors
+          all_errors += errors if errors
         end
 
         error_handler.call(all_errors) if error_handler
@@ -254,9 +269,13 @@ module Spree
       response
     end
 
+    def reupload_all_to_google(options = {})
+      upload_all_to_google(options.merge(reupload: true))
+    end
     def upload_all_to_google(options = {})
       error_handler             = options[:on_error]      || print_errors
-      num_entries_until_request = options[:request_every] || 100
+      num_entries_until_request = options[:request_every] || 200
+      reupload = options[:reupload] || false
 
       t_shirt_category = Spree::ShippingCategory.where(name: 'T-shirt').first
       if t_shirt_category.nil?
@@ -270,14 +289,13 @@ module Spree
         if batch_entries.size >= num_entries_until_request
           batch_insert(batch_entries, error_handler)
           STDOUT.puts "Sent request with #{num_entries_until_request} products."
+          batch_entries.clear
         end
-
-        batch_entries.clear
       end
 
       Spree::Variant
         .includes(:google_product)
-        .where('spree_google_products.id is null')
+        .where("spree_google_products.id is #{reupload ? 'NOT' : ''} null")
         .references('spree_google_products')
         .includes(:product)
         .where(spree_products: { shipping_category_id: t_shirt_category.id })
@@ -292,25 +310,37 @@ module Spree
             batch_entries.size
           )
 
+          # STDOUT.puts "Now at #{batch_entries.size} batch entries"
+          # if batch_entries.size == num_entries_until_request
+            # STDOUT.puts "Check out product #{variant.product.slug} variant #{variant.id}"
+          # end
           check_batch_entries.call
         end
 
-      Spree::GoogleProduct
-        .where(last_insertion_date: nil)
-        .find_each do |google_product|
-          batch_entries << insert_batch_entry(
-            google_utils.settings,
-            google_product,
-            batch_entries.size
-          )
+      unless reupload
+        Spree::GoogleProduct
+          .where(last_insertion_date: nil)
+          .find_each do |google_product|
+            # STDOUT.puts "Visiting google product #{google_product}"
+            if google_product.variant.nil?
+              STDOUT.puts "It has no variant!"
+              next
+            end
+            batch_entries << insert_batch_entry(
+              google_utils.settings,
+              google_product,
+              batch_entries.size
+            )
 
-          check_batch_entries.call
-        end
+            # STDOUT.puts "Now at #{batch_entries.size} batch entries"
+            check_batch_entries.call
+          end
+      end
 
       unless batch_entries.empty?
         last_amount = batch_entries.size
         batch_insert(batch_entries, error_handler) 
-        STDOUT.puts "Sent request with #{last_amount} products."
+        # STDOUT.puts "Sent request with #{last_amount} products."
       end
     end
 

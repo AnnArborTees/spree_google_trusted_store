@@ -222,17 +222,57 @@ module Spree
       STDOUT.puts "Done."
     end
 
-    def upload_all_to_google(options = {})
-      error_handler   = options[:on_error]   || print_errors
-      success_handler = options[:on_success] || print_success
+    def insert_batch_entry(settings, google_product, batch_id)
+      {
+        'batchId'    => batch_id,
+        'merchantId' => settings.merchant_id,
+        'method'     => 'insert',
+        'product'    => google_product.attributes_hash(true)
+      }
+    end
 
-      all_errors    = {}
-      all_successes = []
+    def batch_insert(entries, error_handler = nil)
+      response = google_utils.refresh_if_unauthorized do
+        google_utils.api_client.execute(
+          api_method: google_utils.google_shopping.products.custombatch,
+          body_object: { 'entries' => entries }
+        )
+      end
+
+      if error_handler
+        all_errors = []
+
+        response.data.entries.each do |entry|
+          # No idea which one of these is correct.
+          errors = entry[:errors].try(:[], 'errors') || entry[:error].try(:[], 'errors')
+          all_errors += errors
+        end
+
+        error_handler.call(all_errors) if error_handler
+      end
+
+      response
+    end
+
+    def upload_all_to_google(options = {})
+      error_handler             = options[:on_error]      || print_errors
+      num_entries_until_request = options[:request_every] || 100
 
       t_shirt_category = Spree::ShippingCategory.where(name: 'T-shirt').first
       if t_shirt_category.nil?
         STDOUT.puts "Couldn't find T-shirt shipping category!"
         return
+      end
+
+      batch_entries = []
+
+      check_batch_entries = lambda do
+        if batch_entries.size >= num_entries_until_request
+          batch_insert(batch_entries, error_handler)
+          STDOUT.puts "Sent request with #{num_entries_until_request} products."
+        end
+
+        batch_entries.clear
       end
 
       Spree::Variant
@@ -246,29 +286,32 @@ module Spree
             next unless variant.product.variants.empty?
           end
 
-          upload_variant(variant) do |errors|
-            if errors
-              all_errors[variant] = errors
-            else
-              all_successes << variant
-            end
-          end
+          batch_entries << insert_batch_entry(
+            google_utils.settings,
+            variant.google_product,
+            batch_entries.size
+          )
+
+          check_batch_entries.call
         end
 
       Spree::GoogleProduct
         .where(last_insertion_date: nil)
         .find_each do |google_product|
-          upload_google_product(google_product) do |errors|
-            if errors
-              all_errors[google_product.variant] = errors
-            else
-              all_successes << google_product.variant
-            end
-          end
+          batch_entries << insert_batch_entry(
+            google_utils.settings,
+            google_product,
+            batch_entries.size
+          )
+
+          check_batch_entries.call
         end
 
-      error_handler.call(all_errors)
-      success_handler.call(all_successes)
+      unless batch_entries.empty?
+        last_amount = batch_entries.size
+        batch_insert(batch_entries, error_handler) 
+        STDOUT.puts "Sent request with #{last_amount} products."
+      end
     end
 
     private

@@ -246,6 +246,7 @@ module Spree
       }
     end
 
+    # NOTE assumes batch ids are google_product ids.
     def batch_insert(entries, error_handler = nil)
       response = google_utils.refresh_if_unauthorized do
         google_utils.api_client.execute(
@@ -254,17 +255,39 @@ module Spree
         )
       end
 
+      errors_of = lambda do |entry|
+        # No idea which one of these is correct.
+        (entry[:errors].try(:[], 'errors') || entry[:error].try(:[], 'errors') || [])
+          .to_json
+      end
+
       if error_handler
         all_errors = []
 
         response.data.entries.each do |entry|
-          # No idea which one of these is correct.
-          errors = entry[:errors].try(:[], 'errors') || entry[:error].try(:[], 'errors')
+          errors = error_of[entry]
           all_errors += errors if errors
         end
 
         error_handler.call(all_errors) if error_handler
       end
+
+      google_product_ids = []
+      error_assignment   = 'last_insertion_errors = CASE id'
+      warning_assignment = 'last_insertion_warnings = "",'
+      insertion_date_assignment = "last_insertion_date = #{Time.now.to_s(:db)}"
+      entries.each do |entry|
+        id = e['batchId']
+
+        google_product_ids << id
+        error_assignment += "WHEN #{id} THEN #{errors_of[entry]}"
+      end
+      error_assignment += 'END,'
+
+      update_query = error_assignment + warning_assignment + insertion_date_assignment
+      Spree::GoogleProduct
+        .where(id: google_product_ids)
+        .update_all(update_query)
 
       response
     end
@@ -307,7 +330,7 @@ module Spree
           batch_entries << insert_batch_entry(
             google_utils.settings,
             variant.google_product,
-            batch_entries.size
+            variant.google_product.id
           )
 
           # STDOUT.puts "Now at #{batch_entries.size} batch entries"
@@ -329,7 +352,7 @@ module Spree
             batch_entries << insert_batch_entry(
               google_utils.settings,
               google_product,
-              batch_entries.size
+              google_product.id
             )
 
             # STDOUT.puts "Now at #{batch_entries.size} batch entries"

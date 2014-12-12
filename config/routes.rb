@@ -15,4 +15,6 @@ Spree::Core::Engine.routes.draw do
   end
   get '/google_trusted_store/feed/shipment', to: 'google_feed#shipment', as: :google_trusted_store_shipment_feed
   get '/google_trusted_store/feed/cancelation', to: 'google_feed#cancelation', as: :google_trusted_store_cancelation_feed
+
+  get '/products/:slug/:variant_id', to: 'products#show', as: :product_variant
 end

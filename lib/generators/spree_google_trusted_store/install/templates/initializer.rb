@@ -35,7 +35,7 @@ Spree::GoogleProduct.configure do |config|
   # It is an optional parameter, however, so make sure it's not nil
   # before using it.
   config.define.link do |variant, view|
-    view.try(:product_url, variant.product)
+    view.try(:product_variant_url, variant.product.slug, variant.id)
   end
 
   # NOTE: It is recommended you implement your own definition for

@@ -257,15 +257,14 @@ module Spree
 
       errors_of = lambda do |entry|
         # No idea which one of these is correct.
-        (entry[:errors].try(:[], 'errors') || entry[:error].try(:[], 'errors') || [])
-          .to_json
+        entry[:errors].try(:[], 'errors') || entry[:error].try(:[], 'errors') || []
       end
 
       if error_handler
         all_errors = []
 
         response.data.entries.each do |entry|
-          errors = error_of[entry]
+          errors = errors_of[entry]
           all_errors += errors if errors
         end
 
@@ -273,16 +272,17 @@ module Spree
       end
 
       google_product_ids = []
-      error_assignment   = 'last_insertion_errors = CASE id'
-      warning_assignment = 'last_insertion_warnings = "",'
-      insertion_date_assignment = "last_insertion_date = #{Time.now.to_s(:db)}"
+      error_assignment   = "last_insertion_errors = CASE id\n"
+      warning_assignment = %(last_insertion_warnings = "[]",\n)
+      insertion_date_assignment = "last_insertion_date = NOW()"
       entries.each do |entry|
-        id = e['batchId']
+        id         = entry['batchId']
+        errors_sql = ActiveRecord::Base::sanitize(errors_of[entry].to_json)
 
         google_product_ids << id
-        error_assignment += "WHEN #{id} THEN #{errors_of[entry]}"
+        error_assignment += "\tWHEN #{id} THEN #{errors_sql}\n"
       end
-      error_assignment += 'END,'
+      error_assignment += "END,\n"
 
       update_query = error_assignment + warning_assignment + insertion_date_assignment
       Spree::GoogleProduct

@@ -8,7 +8,8 @@ module Spree
         settings.save
       end
       @orders = Order.complete.where("completed_at > ?", last(:shipment)).to_a
-      update_feed_timestamp(:shipment) if is_google_bot?
+
+      update_feed_timestamp_after(60, :shipment) if is_google_bot?
 
       respond_to do |format|
         format.text { render inline: process_orders(@orders) }
@@ -23,7 +24,7 @@ module Spree
       @orders = Order.where(state: 'canceled')
                      .where("updated_at > ?", last(:cancellation)).to_a
       
-      update_feed_timestamp(:cancellation) if is_google_bot?
+      update_feed_timestamp_after(60, :cancellation) if is_google_bot?
 
       respond_to do |format|
         format.text { render inline: process_cancellations(@orders) }
@@ -31,6 +32,14 @@ module Spree
     end
 
     private
+
+    def update_feed_timestamp_after(time, type)
+      Thread.new(time, type, Time.now) do |sleep_for, feed_type, set_to|
+        sleep sleep_for
+        s = Spree::GoogleTrustedStoreSetting.instance
+        s.update_attributes! "last_#{feed_type}_upload" => set_to
+      end
+    end
 
     def update_feed_timestamp(type)
       settings.update_attributes! "last_#{type}_upload" => Time.now

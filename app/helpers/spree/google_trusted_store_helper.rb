@@ -56,7 +56,8 @@ module Spree
         local_assigns[:most_prominent_variant] ||
         local_assigns[:variant]                ||
         @variant                               ||
-        @variants.try(:first)
+        @variants.try(:first)                  ||
+        @product.try(:variants).try(:first)
       end
     end
 
@@ -64,8 +65,8 @@ module Spree
       safely do
         variant = most_prominent_variant
         return if variant.nil?
-        google_product = variant.google_product ||
-          Spree::GoogleProduct.create(variant_id: variant.id)
+        google_product = variant.google_product
+        return if google_product.nil?
 
         response = google_product.google_get
         return unless product?(response)
@@ -117,6 +118,7 @@ module Spree
         return {} unless product?(response)
 
         product = response.data
+
         {
           prodsearch_id:       product.id,
           prodsearch_store_id: settings.merchant_id,

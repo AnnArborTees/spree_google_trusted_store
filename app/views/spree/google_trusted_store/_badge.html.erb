@@ -4,13 +4,15 @@
     var gts = gts || [];
 
     gts.push(["id", "<%= local_assigns[:id] || '000000' %>"]);
-    gts.push(["locale", "<%= local_assigns[:locals] || 'en_US' %>"]);
+    gts.push(["locale", "<%= local_assigns[:locale] || 'en_US' %>"]);
 
-    <% if Spree::GoogleShoppingSetting.instance.use_google_shopping? && (product = valid_prominent_product) %>
-      gts.push(["google_base_offer_id", "<%= product.offer_id %>"]);
+    <% if Spree::GoogleShoppingSetting.instance.use_google_shopping? %>
+      <% if (product = valid_prominent_product) %>
+        gts.push(["google_base_offer_id", "<%= product.offer_id %>"]);
+      <% end %>
       gts.push(["google_base_subaccount_id", "<%= Spree::GoogleShoppingSetting.instance.merchant_id %>"]);
-      gts.push(["google_base_country", "<%= product.target_country %>"]);
-      gts.push(["google_base_language", "<%= product.content_language %>"]);
+      gts.push(["google_base_country", "<%= product.try(:target_country) || 'US' %>"]);
+      gts.push(["google_base_language", "<%= product.try(:content_language) || 'en' %>"]);
     <% end %>
 
     (function() {

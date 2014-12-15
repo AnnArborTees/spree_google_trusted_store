@@ -7,7 +7,7 @@ module Spree
         settings.last_shipment_upload = Time.now
         settings.save
       end
-      @orders = Order.complete.where("completed_at > ?", last(:shipment))
+      @orders = Order.complete.where("completed_at > ?", last(:shipment)).to_a
       update_feed_timestamp(:shipment) if is_google_bot?
 
       respond_to do |format|
@@ -21,7 +21,7 @@ module Spree
         settings.save
       end
       @orders = Order.where(state: 'canceled')
-                     .where("updated_at > ?", last(:cancellation))
+                     .where("updated_at > ?", last(:cancellation)).to_a
       
       update_feed_timestamp(:cancellation) if is_google_bot?
 

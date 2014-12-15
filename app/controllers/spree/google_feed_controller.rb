@@ -45,7 +45,10 @@ module Spree
     end
 
     def is_google_bot?
-      request.env['HTTP_USER_AGENT'] == 'googlebot'
+      case (request.env['HTTP_USER_AGENT'] || '').downcase.strip
+      when 'google-bot', 'google-xrawler' then true
+      else false
+      end
     end
   end
 end

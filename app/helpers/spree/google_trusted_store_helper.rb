@@ -62,23 +62,21 @@ module Spree
       end
     end
 
-    def most_prominent_variant_with_google_product
+    def most_prominent_google_product_slow
       safely do
-        begin
-          local_assigns = try(:local_assigns) || {}
+        local_assigns = try(:local_assigns) || {}
 
-          relation = @variants               ||
-                     @product.try(:variants) ||
-                     @products.try(:first).try(:variants)
+        variants = @variants               ||
+                   @product.try(:variants) ||
+                   @products.try(:flat_map) { |p| p.variants } ||
+                   []
 
-          relation
-            .includes(:google_product)
-            .where.not(spree_google_products: { last_insertion_date: nil })
-            .where(spree_google_products: { last_insertion_errors: '[]' } )
-            .first
-        rescue StandardError => e
-          logger.error "Bang!: #{e.inspect}"
-        end
+        variant_ids = variants.map(&:id)
+        return if variant_ids.empty?
+        Spree::GoogleProduct
+          .where(variant_id: variant_ids)
+          .where.not(product_id: nil)
+          .first
       end
     end
 
@@ -88,8 +86,7 @@ module Spree
         return if variant.nil?
         google_product = variant.google_product
         if google_product.nil? || google_product.last_insertion_date.nil?
-          variant = most_prominent_variant_with_google_product
-          google_product = variant.google_product
+          google_product = most_prominent_google_product_slow
         end
         return if google_product.nil?
 

@@ -34,12 +34,12 @@ module SpreeGoogleTrustedStore
       end
     end
 
-    def process_cancelations(orders)
+    def process_cancellations(orders)
       CSV.generate(options_for SHIPMENT_HEADERS) do |csv|
         orders.send(each_method(orders)) do |order|
           csv << [
             merchant_order_id(order),
-            'MerchantCanceled' # TODO add cancelation reason to spree order model
+            'MerchantCanceled' # TODO add cancellation reason to spree order model
           ]
         end
       end

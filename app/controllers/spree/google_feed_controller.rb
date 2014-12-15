@@ -15,18 +15,18 @@ module Spree
       end
     end
 
-    def cancelation
-      if settings.last_cancelation_upload.nil?
-        settings.last_cancelation_upload = Time.now
+    def cancellation
+      if settings.last_cancellation_upload.nil?
+        settings.last_cancellation_upload = Time.now
         settings.save
       end
       @orders = Order.where(state: 'canceled')
-                     .where("updated_at > ?", last(:cancelation))
+                     .where("updated_at > ?", last(:cancellation))
       
-      update_feed_timestamp(:cancelation) if is_google_bot?
+      update_feed_timestamp(:cancellation) if is_google_bot?
 
       respond_to do |format|
-        format.text { render inline: process_cancelations(@orders) }
+        format.text { render inline: process_cancellations(@orders) }
       end
     end
 

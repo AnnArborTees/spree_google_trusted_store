@@ -37,7 +37,7 @@ describe Spree::GoogleFeedController, feed_spec: true, story_159: true do
     end
   end
 
-  describe 'GET #cancelation' do
+  describe 'GET #cancellation' do
     let!(:order1) { create :shipped_order }
     let!(:order2) { create :shipped_order }
 
@@ -47,16 +47,16 @@ describe Spree::GoogleFeedController, feed_spec: true, story_159: true do
       end
 
       allow_any_instance_of(Spree::GoogleTrustedStoreSetting)
-        .to receive(:last_cancelation_upload)
+        .to receive(:last_cancellation_upload)
         .and_return 10.days.ago
     end
 
     it 'renders the plaintext order_feed result' do
-      expect(controller).to receive(:process_cancelations)
+      expect(controller).to receive(:process_cancellations)
         .with([order1, order2])
         .and_return 'excellent'
       
-      spree_get :cancelation
+      spree_get :cancellation
       expect(response.body).to eq 'excellent'
     end
 
@@ -67,12 +67,12 @@ describe Spree::GoogleFeedController, feed_spec: true, story_159: true do
 
       it 'updates the last feed upload date in the settings record' do
         expect_any_instance_of(Spree::GoogleTrustedStoreSetting)
-          .to receive(:last_cancelation_upload=).and_call_original
+          .to receive(:last_cancellation_upload=).and_call_original
         
         expect_any_instance_of(Spree::GoogleTrustedStoreSetting)
           .to receive(:save).and_call_original
         
-        spree_get :cancelation
+        spree_get :cancellation
       end
     end
   end

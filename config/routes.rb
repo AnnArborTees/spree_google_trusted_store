@@ -14,7 +14,7 @@ Spree::Core::Engine.routes.draw do
     get '/oauth2/callback', to: 'google_shopping_settings#oauth2', as: :oauth2_callback
   end
   get '/google_trusted_store/feed/shipment', to: 'google_feed#shipment', as: :google_trusted_store_shipment_feed
-  get '/google_trusted_store/feed/cancelation', to: 'google_feed#cancelation', as: :google_trusted_store_cancelation_feed
+  get '/google_trusted_store/feed/cancellation', to: 'google_feed#cancellation', as: :google_trusted_store_cancellation_feed
 
   get '/products/:id/:variant_id', to: 'products#show', as: :product_variant
 end

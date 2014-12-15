@@ -57,8 +57,7 @@ module Spree
         local_assigns[:variant]                ||
         @most_prominent_variant                ||
         @variant                               ||
-        @variants.try(:first)                  ||
-        @product.try(:variants).try(:first)
+        @variants.try(:first)
       end
     end
 
@@ -68,10 +67,10 @@ module Spree
 
         variants = @variants               ||
                    @product.try(:variants) ||
-                   @products.try(:flat_map) { |p| p.variants } ||
+                   @products.try(:flat_map) { |p| p.try(:variants) } ||
                    []
 
-        variant_ids = variants.map(&:id)
+        variant_ids = variants.compact.map(&:id)
         return if variant_ids.empty?
         Spree::GoogleProduct
           .where(variant_id: variant_ids)
@@ -82,9 +81,9 @@ module Spree
 
     def valid_prominent_product
       safely do
-        variant = most_prominent_variant
-        return if variant.nil?
-        google_product = variant.google_product
+        variant        = most_prominent_variant
+        google_product = variant.try(:google_product)
+
         if google_product.nil? || google_product.last_insertion_date.nil?
           google_product = most_prominent_google_product_slow
         end

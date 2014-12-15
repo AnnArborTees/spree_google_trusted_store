@@ -14,7 +14,7 @@
 
 <div class='row'>
   <h2>Google Trusted Store cancellation feed path: </h2>
-  <%= text_field_tag 'cancellation_feed_path', spree.google_trusted_store_cancellation_feed_url, + '.txt' readonly: true, style: 'width: 70%;' %>
+  <%= text_field_tag 'cancellation_feed_path', spree.google_trusted_store_cancellation_feed_url + '.txt', readonly: true, style: 'width: 70%;' %>
 </div>
 
 <%= form_for @google_trusted_store_setting, url: spree.admin_google_trusted_store_setting_path(@google_trusted_store_setting) do |f| %>

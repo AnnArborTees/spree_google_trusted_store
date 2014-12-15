@@ -1,5 +1,9 @@
 module Spree
   class GoogleErrorMailer < BaseMailer
+    class << self
+      attr_accessor :last_error_message
+    end
+
     def helper_error(e)
       recipient, sender, subject = basic_info('Google Merchant error')
       @error = e

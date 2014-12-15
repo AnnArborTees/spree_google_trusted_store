@@ -55,9 +55,30 @@ module Spree
 
         local_assigns[:most_prominent_variant] ||
         local_assigns[:variant]                ||
+        @most_prominent_variant                ||
         @variant                               ||
         @variants.try(:first)                  ||
         @product.try(:variants).try(:first)
+      end
+    end
+
+    def most_prominent_variant_with_google_product
+      safely do
+        begin
+          local_assigns = try(:local_assigns) || {}
+
+          relation = @variants               ||
+                     @product.try(:variants) ||
+                     @products.try(:first).try(:variants)
+
+          relation
+            .includes(:google_product)
+            .where.not(spree_google_products: { last_insertion_date: nil })
+            .where(spree_google_products: { last_insertion_errors: '[]' } )
+            .first
+        rescue StandardError => e
+          logger.error "Bang!: #{e.inspect}"
+        end
       end
     end
 
@@ -66,6 +87,10 @@ module Spree
         variant = most_prominent_variant
         return if variant.nil?
         google_product = variant.google_product
+        if google_product.nil? || google_product.last_insertion_date.nil?
+          variant = most_prominent_variant_with_google_product
+          google_product = variant.google_product
+        end
         return if google_product.nil?
 
         response = google_product.google_get
@@ -83,7 +108,10 @@ module Spree
         yield
       rescue StandardError => e
         begin
-          GoogleErrorMailer.helper_error(e).deliver
+          if GoogleErrorMailer.last_error_message != e.message
+            GoogleErrorMailer.last_error_message = e.message
+            GoogleErrorMailer.helper_error(e).deliver
+          end
         rescue StandardError => e2
           logger.error "Failed to send error email!"
           logger.error e2.inspect

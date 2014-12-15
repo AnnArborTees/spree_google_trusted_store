@@ -3,18 +3,31 @@ module Spree
     include SpreeGoogleTrustedStore::OrderFeed
 
     def shipment
+      if settings.last_shipment_upload.nil?
+        settings.last_shipment_upload = Time.now
+        settings.save
+      end
       @orders = Order.complete.where("completed_at > ?", last(:shipment))
       update_feed_timestamp(:shipment) if is_google_bot?
 
-      render text: process_orders(@orders)
+      respond_to do |format|
+        format.text { render inline: process_orders(@orders) }
+      end
     end
 
     def cancelation
+      if settings.last_cancelation_upload.nil?
+        settings.last_cancelation_upload = Time.now
+        settings.save
+      end
       @orders = Order.where(state: 'canceled')
+                     .where("updated_at > ?", last(:cancelation))
       
       update_feed_timestamp(:cancelation) if is_google_bot?
 
-      render text: process_cancelations(@orders)
+      respond_to do |format|
+        format.text { render inline: process_cancelations(@orders) }
+      end
     end
 
     private

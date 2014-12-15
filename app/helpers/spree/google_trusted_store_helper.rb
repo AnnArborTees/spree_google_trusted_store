@@ -104,8 +104,9 @@ module Spree
         yield
       rescue StandardError => e
         begin
-          if GoogleErrorMailer.last_error_message != e.message
-            GoogleErrorMailer.last_error_message = e.message
+          message = e.message.gsub /(?<=\:)([\w\d]+)(?=\>\>)/, 'xxxxxxxxxxx'
+          if GoogleErrorMailer.last_error_message != message
+            GoogleErrorMailer.last_error_message = message
             GoogleErrorMailer.helper_error(e).deliver
           end
         rescue StandardError => e2

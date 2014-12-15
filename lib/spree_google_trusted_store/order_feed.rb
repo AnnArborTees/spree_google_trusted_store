@@ -5,7 +5,7 @@ module SpreeGoogleTrustedStore
       ABFS AMWST BEKINS CNWY DHL ESTES HDUSA LASERSHIP MYFLWR ODFL RDAWAY
       TWW WATKINS YELL YRC OTHER
     )
-    ACCEPTED_CANCELATION_REASONS = %w(
+    ACCEPTED_CANCELLATION_REASONS = %w(
       BuyerCanceled MerchantCanceled DuplicateInvalid FraudFake
     )
     SHIPMENT_HEADERS = [
@@ -15,7 +15,7 @@ module SpreeGoogleTrustedStore
       'other carrier name',
       'ship date'
     ]
-    CANCELATION_HEADERS = [
+    CANCELLATION_HEADERS = [
       'merchant order id',
       'reason'
     ]
@@ -35,7 +35,7 @@ module SpreeGoogleTrustedStore
     end
 
     def process_cancellations(orders)
-      CSV.generate(options_for SHIPMENT_HEADERS) do |csv|
+      CSV.generate(options_for CANCELLATION_HEADERS) do |csv|
         orders.send(each_method(orders)) do |order|
           csv << [
             merchant_order_id(order),

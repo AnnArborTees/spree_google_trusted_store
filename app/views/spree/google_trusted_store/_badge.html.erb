@@ -7,7 +7,7 @@
     gts.push(["locale", "<%= local_assigns[:locale] || 'en_US' %>"]);
 
     <% if Spree::GoogleShoppingSetting.instance.use_google_shopping? %>
-      <% if (product = valid_prominent_product) %>
+      <% if (product = valid_prominent_product) && product.offer_id && !product.offer_id.empty? %>
         gts.push(["google_base_offer_id", "<%= product.offer_id %>"]);
       <% end %>
       gts.push(["google_base_subaccount_id", "<%= Spree::GoogleShoppingSetting.instance.merchant_id %>"]);

@@ -2,6 +2,7 @@ source 'https://rubygems.org'
 
 # Provides basic authentication functionality for testing parts of your engine
 # gem 'spree_auth_devise', github: 'spree/spree_auth_devise', branch: '2-2-stable'
-gem 'byebug', group: [:development, :test]
+gem 'byebug', group: [:development, :test], platforms: :mri
+gem 'rubinius-debugger', group: [:development, :test], platforms: :rbx
 
 gemspec

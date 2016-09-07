@@ -1,4 +1,4 @@
-<% unless URI(request.original_url).path.starts_with?('/admin') %>
+<% if (!URI(request.original_url).path.starts_with?('/admin') rescue false) %>
   <!-- BEGIN: Google Trusted Stores -->
   <script type="text/javascript">
     var gts = gts || [];
